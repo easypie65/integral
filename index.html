@@ -1,4 +1,8 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>넓이에서 미분으로</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,6 +25,7 @@
   --under:#6DB3D4; --over:#F0A55A; --inc:#E37DB0; --cand:#8CC66C; --neg:#F07C74; color-scheme:dark}
 
 *{box-sizing:border-box}
+body{margin:0}
 body{background-color:var(--paper);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.65;
   background-image:linear-gradient(var(--gridf) 1px,transparent 1px),linear-gradient(90deg,var(--gridf) 1px,transparent 1px);
   background-size:24px 24px;
@@ -184,6 +189,8 @@ td.barcell{width:32%;min-width:150px}
 #cf-msg.ok{color:var(--cand);font-weight:600} #cf-msg.no{color:var(--neg)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
+</head>
+<body>
 
 <div class="wrap">
 <header>
@@ -497,8 +504,8 @@ td.barcell{width:32%;min-width:150px}
       <div class="fld wide"><label for="cf-split">어떻게 잘게 나누나요? <i>*</i></label><textarea id="cf-split" name="split" maxlength="1000" placeholder="무엇을 기준으로, 어떤 폭으로 나누는지 써 보세요."></textarea></div>
       <div class="fld wide"><label for="cf-sum">무엇을 곱해서 더하나요? <i>*</i></label><textarea id="cf-sum" name="sum" maxlength="1000" placeholder="조각 하나의 ‘높이 × 폭’이 실제로 무엇을 뜻하는지, 모두 더하면 무엇이 되는지 써 보세요."></textarea></div>
       <div class="fld wide"><label for="cf-reverse">거꾸로 생각하기: 넓이(누적량)를 미분하면 무엇이 되나요?</label><textarea id="cf-reverse" name="reverse" maxlength="1000" placeholder="오늘 배운 S′(x) = f(x)를 내 상황에 적용해 보세요."></textarea></div>
-      <div class="fld wide"><label for="cf-img">그래프 그림 사진 (선택)</label><input type="file" id="cf-img" accept="image/*"><span class="hint" id="cf-imgmsg">손으로 그린 그래프를 찍어 올려도 됩니다. 큰 사진은 자동으로 줄여서 보냅니다.</span></div>
       <label class="wide inl"><input type="checkbox" id="cf-results" checked> 오늘 활동 결과(첫 시도 정답 수, 다시 살펴볼 생각, 3단계 설명)도 함께 보내기</label>
+      <p class="hint wide">제출하면 선생님의 학교 구글 시트로 바로 전송됩니다. 학번과 이름을 정확히 썼는지 확인하세요.</p>
     </div>
     <div class="qa"><button type="submit" class="primary" id="cf-send">제출하기</button><span class="qmsg" id="cf-msg" aria-live="polite"></span></div>
   </form>
@@ -880,43 +887,31 @@ function drawLab6(){var f=function(x){return x*x-1;},C;
   $('#b6out').textContent=b6.toFixed(2);$('#r6P').textContent=fmt(pos);$('#r6N').textContent=fmt(neg);$('#r6I').textContent=fmt(pos-neg);$('#r6A').textContent=fmt(pos+neg);}
 $('#b6').addEventListener('input',function(e){b6=+e.target.value;drawLab6();});
 
-/* ---------- 진로 과제 제출 (Google Apps Script) ---------- */
-/* Apps Script 웹 앱을 배포한 뒤 받은 주소(…/exec)를 아래 따옴표 안에 붙여 넣으세요. */
-var SUBMIT_URL='';
+/* ---------- 진로 과제 제출 (학교 계정 구글 폼으로 바로 보내기) ---------- */
+var FORM={"url":"https://docs.google.com/forms/d/e/1FAIpQLSfbPendL255Fqip0J0LNq7HKRjEdjEdHxQUySqStQBWXbMVfQ/formResponse","entries":{"sid":"entry.107183727","sname":"entry.1978355021","field":"entry.1068740854","title":"entry.1559113205","xaxis":"entry.1581723353","height":"entry.1887671176","area":"entry.594248280","split":"entry.253438764","sum":"entry.797435543","reverse":"entry.461853861","score":"entry.1948214646","flags":"entry.974983626","explain":"entry.491993384","pred0":"entry.1384251732"}};
 (function(){var form=$('#careerForm'),msg=$('#cf-msg'),btn=$('#cf-send');
   var FIELDS=['sid','sname','field','title','xaxis','height','area','split','sum','reverse'];
   var REQ=['sid','sname','title','xaxis','height','area','split','sum'];
-  var img=null;
   if(!S.career)S.career={};
   FIELDS.forEach(function(k){var el=$('#cf-'+k);if(S.career[k])el.value=S.career[k];
     el.addEventListener('input',function(){S.career[k]=el.value;el.parentNode.classList.remove('bad');save();});});
-  if(S.careerSent)setMsg('이전에 '+S.careerSent+'에 제출했어요. 고쳐서 다시 제출하면 새 줄로 추가됩니다.','ok');
   function setMsg(t,cls){msg.textContent=t;msg.className='qmsg'+(cls?' '+cls:'');}
-  $('#cf-img').addEventListener('change',function(e){var file=e.target.files&&e.target.files[0];img=null;if(!file)return;
-    if(!/^image\//.test(file.type)){$('#cf-imgmsg').textContent='사진 파일만 올릴 수 있어요.';return;}
-    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){
-      var s=Math.min(1,1400/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);
-      var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(im,0,0,cv.width,cv.height);
-      img={name:file.name.replace(/\.[^.]+$/,'')+'.jpg',type:'image/jpeg',data:cv.toDataURL('image/jpeg',0.82).split(',')[1]};
-      $('#cf-imgmsg').textContent='사진 준비 완료 ('+cv.width+'×'+cv.height+', 약 '+Math.round(img.data.length*0.75/1024)+'KB)';};
-      im.onerror=function(){$('#cf-imgmsg').textContent='이 사진은 읽을 수 없어요. JPG나 PNG로 다시 올려 주세요.';};im.src=fr.result;};fr.readAsDataURL(file);});
+  if(S.careerSent)setMsg('이전에 '+S.careerSent+'에 제출했어요. 고쳐서 다시 제출하면 새 응답으로 추가됩니다.','ok');
   function results(){var answered=GRADED.filter(function(id){return S.ans[id]&&S.ans[id].first!==undefined;});
     var right=answered.filter(function(id){return S.ans[id].firstOk;}).length;
     var flags=MIS.filter(function(m){return m.q.some(function(id){var r=S.ans[id];return r&&r.first!==undefined&&!r.firstOk;});}).map(function(m){return m.label;});
-    return{score:right+' / '+answered.length,flags:flags,explain:(S.text||'').trim(),pred0:S.pred0===null?'':String(S.pred0)};}
+    return{score:right+' / '+answered.length,flags:flags.join(' / ')||'없음',explain:(S.text||'').trim(),pred0:S.pred0===null?'':String(S.pred0)};}
   form.addEventListener('submit',function(e){e.preventDefault();
     var miss=REQ.filter(function(k){var el=$('#cf-'+k),bad=!el.value.trim();el.parentNode.classList.toggle('bad',bad);return bad;});
     if(miss.length){setMsg('* 표시한 칸을 모두 채워 주세요.','no');$('#cf-'+miss[0]).focus();return;}
-    if(!SUBMIT_URL){setMsg('아직 제출 주소가 설정되지 않았어요. 선생님께 알려 주세요.','no');return;}
-    var data={page:'integral-lesson-v1'};FIELDS.forEach(function(k){data[k]=$('#cf-'+k).value.trim();});
-    if($('#cf-results').checked)data.results=results();if(img)data.image=img;
+    var vals={};FIELDS.forEach(function(k){vals[k]=$('#cf-'+k).value.trim();});
+    if($('#cf-results').checked){var r=results();Object.keys(r).forEach(function(k){vals[k]=r[k];});}
+    var body=new URLSearchParams();Object.keys(vals).forEach(function(k){if(FORM.entries[k]&&vals[k])body.append(FORM.entries[k],vals[k]);});
     btn.disabled=true;setMsg('보내는 중…','');
-    fetch(SUBMIT_URL,{method:'POST',body:JSON.stringify(data)})
-      .then(function(r){return r.json();})
-      .then(function(j){if(!j||!j.ok)throw new Error((j&&j.error)||'unknown');
-        var t=new Date();S.careerSent=t.getMonth()+1+'월 '+t.getDate()+'일 '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');save();
-        setMsg('제출했어요 ('+S.careerSent+'). 고쳐서 다시 제출하면 새 줄로 추가됩니다.','ok');})
-      .catch(function(err){setMsg('제출하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요. 계속 안 되면 선생님께 알려 주세요. ('+(err&&err.message||'오류')+')','no');})
+    fetch(FORM.url,{method:'POST',mode:'no-cors',body:body})
+      .then(function(){var t=new Date();S.careerSent=(t.getMonth()+1)+'월 '+t.getDate()+'일 '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');save();
+        setMsg('제출했어요 ('+S.careerSent+'). 고쳐서 다시 제출하면 새 응답으로 추가됩니다.','ok');})
+      .catch(function(){setMsg('제출하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요. 계속 안 되면 선생님께 알려 주세요.','no');})
       .then(function(){btn.disabled=false;});});})();
 
 /* ---------- 시작 ---------- */
@@ -930,5 +925,5 @@ new MutationObserver(drawAll).observe(document.documentElement,{attributes:true,
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(drawAll);
 })();
 </script>
-
-</body></html>
+</body>
+</html>
