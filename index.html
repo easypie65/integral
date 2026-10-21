@@ -1,221 +1,416 @@
-미적분Ⅰ · Ⅲ. 적분 · 02 정적분 도입 활동
-
-# 넓이를 쫓다 보니 미분이 나왔다
-
-곡선 아래 넓이는 공식이 없습니다. 이미 아는 도형인 직사각형으로 잘라 어림하고, 조각을 늘려 가며 참값을 좁혀 봅시다. 마지막에는 그 넓이가 우리가 배운 부정적분과 만납니다.
-
-1
-
-## 직사각형으로 어림하기
-
-구간 \[0, b\]를 n개로 똑같이 나눠 직사각형을 세웁니다. 각 칸의 **왼쪽 끝** 높이를 쓰면 곡선 아래에 들어가고(과소), **오른쪽 끝** 높이를 쓰면 곡선 위로 삐져나옵니다(과대). 참값은 두 값 사이에 있습니다.
-
-함수
-
-오른쪽 끝 b 1
-
-직사각형 개수 n 8
-
-보기
-
-장면
-
-과소 (왼쪽 끝)
-
-–
-
-과대 (오른쪽 끝)
-
-–
-
-차이
-
-–
-
-‘차이 조각 모으기’를 누르면 주황 조각들이 한 줄로 쌓입니다.
-
-발문주황색 조각을 모두 오른쪽으로 밀어 쌓으면 어떤 모양이 될까? 그 넓이는 n이 커질 때 어떻게 될까?
-
-2
-
-## 조각을 늘려 좁혀 가기
-
-위에서 고른 함수와 b로 n을 크게 늘려 봅니다. 과소와 과대가 같은 수를 향해 다가가면, 그 수를 넓이라고 부를 수 있습니다.
-
-| n | 과소 (커짐 ↑) | 과대 (작아짐 ↓) | 차이 → 0 | 참값이 있을 수 있는 범위 |
-| --- | --- | --- | --- | --- |
-
-과소는 곡선 아래에서 위로, 과대는 위에서 아래로 다가갑니다. 그래서 n이 커질수록 과소는 커지고 과대는 작아지며, 작아지는 것은 둘 사이의 차이입니다. 오른쪽 막대는 참값이 숨어 있을 수 있는 범위가 좁아지는 모습입니다.
-
-발문y = x²이고 b = 1일 때 두 값은 어떤 분수로 다가가는 것 같니? b = 2, 3이면?
-
-3
-
-## 넓이를 b의 함수로 보기
-
-b를 바꿀 때마다 넓이가 하나씩 정해지니 넓이는 b의 함수 S(b)입니다. 위에서 b를 바꾸고 **기록하기**를 눌러 점을 찍은 뒤, 어떤 식이 그 점들을 모두 지나는지 후보를 골라 보세요.
-
-기록값은 n = 1000일 때 과소와 과대의 평균입니다. 처음 두 점(b = 1, 2)은 예시로 찍혀 있습니다.
-
-S(x) 후보 식 겹쳐 보기
-
-4
-
-## 왜 미분의 역과정이 될까
-
-b를 Δx만큼 늘리면 넓이는 가느다란 조각 하나만큼 늘어납니다. 그 조각은 높이 f(b), 폭 Δx인 직사각형과 거의 같습니다. 1단계의 **ΔS 조각 보기**와 아래 버튼으로 확인해 보세요.
-
-ΔS ≈ f(b)·Δx→ ΔS / Δx ≈ f(b)→ Δx → 0 이면→ **S′(b) = f(b)**
-
-발문기울기가 f(b)인 직선이 S의 그래프에 딱 접한다. 그렇다면 넓이 함수 S는 f의 무엇일까? (앞에서 배운 단어로 답해 보자.)
-
-## 잘게 나눠 더하기, 이 생각은 어디에 쓰일까
-
-오늘의 핵심은 두 가지입니다. 모르는 양을 **잘게 나눠 아는 모양으로 바꾼 뒤 더한다**는 생각과, **변화율을 쌓으면 누적량이 되고 누적량을 미분하면 변화율로 돌아온다**는 관계입니다. 그래프의 높이와 넓이가 무엇을 뜻하는지만 바뀔 뿐, 많은 직업이 같은 계산을 합니다.
-
-높이속도넓이이동 거리
-
-높이전력 (kW)넓이전력량 (kWh)
-
-높이혈중 약물 농도넓이몸이 받은 노출량
-
-높이한계비용넓이총비용의 증가
-
-높이물이 흘러드는 양넓이저수지에 고인 물
-
-의학 · 약학
-
-### 약이 몸에 얼마나 들어갔나
-
-나누기
-
-채혈 시각 사이의 짧은 시간
-
-더하기
-
-농도 × 시간
-
-혈중 농도 그래프 아래 넓이(AUC)로 약의 노출량을 잽니다. 복제약이 원래 약과 같은 효과를 내는지 판정할 때 이 넓이를 비교합니다.
-
-약학과 · 간호학과 · 의예과 · 제약공학
-
-의료영상
-
-### CT 사진으로 종양 부피 재기
-
-나누기
-
-얇은 단면 사진 한 장 한 장
-
-더하기
-
-단면 넓이 × 두께
-
-몸을 얇게 자른 영상의 단면 넓이를 쌓으면 부피가 됩니다. 넓이를 더하던 오늘의 방법을 한 차원 올린 것입니다.
-
-방사선학과 · 의공학과 · 바이오메디컬공학
-
-자동차 · 로봇
-
-### GPS 없이 위치 알아내기
-
-나누기
-
-0.01초 같은 아주 짧은 시간
-
-더하기
-
-속도 × 시간
-
-터널 안 내비게이션이나 자율주행 로봇은 센서가 잰 속도를 계속 더해 이동 거리를 추정합니다. 다음 단원 ‘속도와 거리’의 내용입니다.
-
-기계공학 · 자동차공학 · 로봇공학 · 항공우주
-
-건축 · 토목
-
-### 도로를 내려면 흙이 얼마나 필요할까
-
-나누기
-
-일정 간격으로 자른 지형 단면
-
-더하기
-
-단면 넓이 × 간격
-
-산을 깎고 골짜기를 메울 흙의 양(토공량)을 단면 넓이를 쌓아 계산합니다. 공사비 견적이 여기서 나옵니다.
-
-토목공학 · 건축공학 · 도시공학
-
-에너지 · 환경
-
-### 우리 집 전기요금과 태양광 발전량
-
-나누기
-
-15분, 1시간 같은 시간 구간
-
-더하기
-
-전력 × 시간
-
-순간 전력 그래프 아래 넓이가 전력량(kWh)이고, 요금은 이 값으로 매깁니다. 하루 동안 태양광 패널이 만든 에너지도 같은 방법으로 셉니다.
-
-전기공학 · 에너지공학 · 환경공학
-
-경제 · 경영
-
-### 하나 더 만들 때 드는 비용을 모으면
-
-나누기
-
-생산량 한 단위씩
-
-더하기
-
-한계비용
-
-한계비용은 총비용의 변화율입니다. 이를 쌓으면 총비용이 되고, 수요곡선 아래 넓이로는 소비자가 얻는 이득(소비자잉여)을 잽니다.
-
-경제학 · 경영학 · 회계 · 금융공학
-
-데이터 · 인공지능
-
-### 넓이가 곧 확률
-
-나누기
-
-값의 범위를 잘게 나눈 구간
-
-더하기
-
-확률밀도 × 구간 폭
-
-확률분포 그래프에서 넓이는 확률을 뜻합니다. AI 모델이 얼마나 잘 구분하는지도 ROC 곡선 아래 넓이(AUC)로 평가합니다.
-
-통계학 · 컴퓨터공학 · 데이터사이언스 · AI
-
-게임 · 그래픽스
-
-### 화면 속 공은 어떻게 날아갈까
-
-나누기
-
-1/60초 한 프레임
-
-더하기
-
-속도 × 프레임 시간
-
-물리엔진은 매 프레임 속도에 짧은 시간을 곱해 위치에 더합니다. 직사각형을 하나씩 쌓는 오늘의 과소합과 같은 계산입니다.
-
-소프트웨어 · 게임공학 · 디지털콘텐츠
-
-진로 연계 과제내 관심 분야에서 ‘그래프의 높이’와 ‘그래프 아래 넓이’가 각각 무엇을 뜻하는 상황을 하나 찾아, 어떻게 잘게 나누고 무엇을 더하는지 한 장으로 설명해 보자.
-
-교사용 메모 · 2022 개정 교육과정 범위
-
-- 성취기준 \[12미적Ⅰ-03-03\]은 정적분의 개념을 **탐구**하도록 하고, 정적분은 그래프와 x축 사이의 **넓이**로 정의합니다. 이 활동은 그 넓이를 어떻게 구할지 직관적으로 탐구하는 데까지만 다룹니다.
-- 구분구적법과 급수의 합을 이용한 정적분의 정의는 『미적분Ⅱ』 내용입니다(지도서 198쪽). 정적분을 lim Σ f(xk)Δx로 정의하거나 지필·수행평가에 출제하지 않습니다.
-- “n이 한없이 커지면”은 표와 그래프로 관찰하는 수준에서 다룹니다. 수열의 극한 계산은 하지 않습니다.
-- 4단계의 ΔS ≈ f(b)Δx 논리는 교과서 125쪽 이후 넓이 함수 S(x)와 S′(x) = f(x) 설명으로 바로 이어집니다.
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>직사각형으로 넓이 쫓기</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: 모눈종이 위 한 줄 흐름. 실험(그래프+조작판) → 표 → 넓이 함수 → 진로 → 교사 메모 */
+:root{
+  --paper:#F4F7F5; --panel:#FFFFFF; --ink:#17242B; --muted:#56676C; --grid:#DDE7E3; --gridf:#E6EEEB; --line:#C9D6D1;
+  --under:#2A6C8C; --over:#CC7420; --inc:#AE3B74; --cand:#4E8A33;
+  --display:"Nanum Myeongjo","Batang","AppleMyungjo",serif;
+  --body:"IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#10181C; --panel:#172227; --ink:#E3ECEE; --muted:#93A6AB; --grid:#25343B; --gridf:#18242A; --line:#2E3F46;
+  --under:#6DB3D4; --over:#F0A55A; --inc:#E37DB0; --cand:#8CC66C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#10181C; --panel:#172227; --ink:#E3ECEE; --muted:#93A6AB; --grid:#25343B; --gridf:#18242A; --line:#2E3F46;
+  --under:#6DB3D4; --over:#F0A55A; --inc:#E37DB0; --cand:#8CC66C; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0}
+body{background-color:var(--paper);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.65;
+  background-image:linear-gradient(var(--gridf) 1px,transparent 1px),linear-gradient(90deg,var(--gridf) 1px,transparent 1px);
+  background-size:24px 24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.3}
+h1{font-size:clamp(28px,5vw,44px);font-weight:800;letter-spacing:-.01em}
+h2{font-size:clamp(21px,3vw,27px);font-weight:800}
+h3{font-size:17px;font-weight:700}
+p{margin:0;max-width:68ch}
+.eyebrow{font-size:12.5px;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.lede{font-size:17px;color:var(--muted);max-width:62ch}
+header{display:flex;flex-direction:column;gap:12px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+sup{font-size:.7em}
+
+.step{display:flex;flex-direction:column;gap:16px}
+.step-head{display:flex;gap:14px;align-items:baseline}
+.num{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--paper);background:var(--ink);border-radius:4px;padding:1px 8px;flex:none;transform:translateY(-3px)}
+.ask{border-left:3px solid var(--inc);padding:4px 0 4px 14px;color:var(--ink);font-weight:500}
+.ask span{display:block;font-size:12px;color:var(--inc);letter-spacing:.06em;font-weight:600}
+
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+@media (max-width:860px){.lab{grid-template-columns:minmax(0,1fr)}}
+.board{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
+canvas{display:block;width:100%}
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:16px}
+.ctl{display:flex;flex-direction:column;gap:7px}
+.ctl label,.ctl .lbl{font-size:13px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.ctl output{font-family:var(--mono);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--ink)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:13.5px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:6px;padding:5px 11px;cursor:pointer}
+button:hover{border-color:var(--ink)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--inc);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip{font-family:var(--mono);font-size:12.5px;padding:3px 9px}
+.readout{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px;border-top:1px solid var(--line);padding-top:12px}
+.readout dt{display:flex;align-items:center;gap:8px}
+.readout dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+.sw{width:11px;height:11px;border-radius:2px;flex:none}
+.sw.u{background:var(--under)} .sw.o{background:var(--over)} .sw.g{background:var(--ink)}
+.hint{font-size:13px;color:var(--muted)}
+
+.tablebox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:14px}
+th,td{padding:8px 14px;text-align:right;border-bottom:1px solid var(--line)}
+th{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:.03em}
+th:first-child,td:first-child{text-align:left}
+td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+td.u{color:var(--under)} td.o{color:var(--over)}
+td.barcell{width:34%;min-width:160px}
+.track{position:relative;height:14px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.track::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--line)}
+.track .span{position:absolute;top:3px;bottom:3px;background:var(--ink);opacity:.18;border-radius:2px}
+.track i{position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;border-radius:1px}
+.track i.lo{background:var(--under)} .track i.hi{background:var(--over)}
+table{min-width:640px}
+
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
+.pts{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
+.pt{font-family:var(--mono);font-size:12.5px;border:1px dashed var(--line);border-radius:5px;padding:2px 8px}
+.verdict{font-size:14px;font-weight:600;min-height:1.6em}
+.verdict.ok{color:var(--cand)} .verdict.no{color:var(--over)}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-family:var(--mono);font-size:14.5px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.chain .arr{color:var(--muted)}
+.chain b{color:var(--inc);font-weight:600}
+
+.pairs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+@media (max-width:860px){.pairs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.pairs{grid-template-columns:minmax(0,1fr)}}
+.pair{border-top:2px solid var(--ink);padding-top:8px;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.pair .r{color:var(--muted);font-size:12.5px}
+.pair .a{font-weight:600}
+
+.jobs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:1000px){.jobs{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.jobs{grid-template-columns:minmax(0,1fr)}}
+.job{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.job .field{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--inc)}
+.job dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13.5px}
+.job dt{color:var(--muted);white-space:nowrap}
+.job dd{margin:0}
+.job p{font-size:13.5px;color:var(--ink)}
+.job .majors{font-size:12.5px;color:var(--muted);margin-top:auto;border-top:1px solid var(--line);padding-top:8px}
+
+.note{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px}
+.note ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;max-width:80ch}
+.note .tag{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">미적분Ⅰ · Ⅲ. 적분 · 02 정적분 도입 활동</div>
+  <h1>넓이를 쫓다 보니 미분이 나왔다</h1>
+  <p class="lede">곡선 아래 넓이는 공식이 없습니다. 이미 아는 도형인 직사각형으로 잘라 어림하고, 조각을 늘려 가며 참값을 좁혀 봅시다. 마지막에는 그 넓이가 우리가 배운 부정적분과 만납니다.</p>
+</header>
+
+<section class="step" id="s1">
+  <div class="step-head"><span class="num">1</span><h2>직사각형으로 어림하기</h2></div>
+  <p>구간 [0, b]를 n개로 똑같이 나눠 직사각형을 세웁니다. 각 칸의 <b style="color:var(--under)">왼쪽 끝</b> 높이를 쓰면 곡선 아래에 들어가고(과소), <b style="color:var(--over)">오른쪽 끝</b> 높이를 쓰면 곡선 위로 삐져나옵니다(과대). 참값은 두 값 사이에 있습니다.</p>
+  <div class="lab">
+    <div class="board"><canvas id="main" aria-label="곡선 아래 넓이를 직사각형으로 어림한 그래프"></canvas></div>
+    <div class="controls">
+      <div class="ctl"><span class="lbl">함수</span>
+        <div class="seg" id="fnSeg">
+          <button data-fn="sq" aria-pressed="true">y = x²</button>
+          <button data-fn="lin" aria-pressed="false">y = 2x</button>
+          <button data-fn="cu" aria-pressed="false">y = x³</button>
+        </div></div>
+      <div class="ctl"><label for="bIn">오른쪽 끝 b <output id="bOut">1</output></label>
+        <input id="bIn" type="range" min="0.5" max="3" step="0.5" value="1"></div>
+      <div class="ctl"><label for="nIn">직사각형 개수 n <output id="nOut">8</output></label>
+        <input id="nIn" type="range" min="1" max="200" step="1" value="8">
+        <div class="seg" id="nChips">
+          <button class="chip" data-n="4">4</button><button class="chip" data-n="8">8</button><button class="chip" data-n="16">16</button><button class="chip" data-n="50">50</button><button class="chip" data-n="1000">1000</button>
+        </div></div>
+      <div class="ctl"><span class="lbl">보기</span>
+        <div class="seg" id="modeSeg">
+          <button data-mode="under" aria-pressed="false">과소</button>
+          <button data-mode="over" aria-pressed="false">과대</button>
+          <button data-mode="both" aria-pressed="true">둘 다</button>
+        </div></div>
+      <div class="ctl"><span class="lbl">장면</span>
+        <div class="seg">
+          <button id="gatherBtn" aria-pressed="false">차이 조각 모으기</button>
+          <button id="incBtn" aria-pressed="false">ΔS 조각 보기</button>
+        </div></div>
+      <dl class="readout">
+        <dt><span class="sw u"></span>과소 (왼쪽 끝)</dt><dd id="rLo">–</dd>
+        <dt><span class="sw o"></span>과대 (오른쪽 끝)</dt><dd id="rHi">–</dd>
+        <dt><span class="sw g"></span>차이</dt><dd id="rGap">–</dd>
+      </dl>
+      <p class="hint" id="gapHint">‘차이 조각 모으기’를 누르면 주황 조각들이 한 줄로 쌓입니다.</p>
+    </div>
+  </div>
+  <p class="ask"><span>발문</span>주황색 조각을 모두 오른쪽으로 밀어 쌓으면 어떤 모양이 될까? 그 넓이는 n이 커질 때 어떻게 될까?</p>
+</section>
+
+<section class="step" id="s2">
+  <div class="step-head"><span class="num">2</span><h2>조각을 늘려 좁혀 가기</h2></div>
+  <p>위에서 고른 함수와 b로 n을 크게 늘려 봅니다. 과소와 과대가 같은 수를 향해 다가가면, 그 수를 넓이라고 부를 수 있습니다.</p>
+  <div class="tablebox"><table>
+    <thead><tr><th>n</th><th>과소 (커짐 ↑)</th><th>과대 (작아짐 ↓)</th><th>차이 → 0</th><th>참값이 있을 수 있는 범위</th></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table></div>
+  <p class="hint">과소는 곡선 아래에서 위로, 과대는 위에서 아래로 다가갑니다. 그래서 n이 커질수록 과소는 커지고 과대는 작아지며, 작아지는 것은 둘 사이의 차이입니다. 오른쪽 막대는 참값이 숨어 있을 수 있는 범위가 좁아지는 모습입니다.</p>
+  <p class="ask"><span>발문</span>y = x²이고 b = 1일 때 두 값은 어떤 분수로 다가가는 것 같니? b = 2, 3이면?</p>
+</section>
+
+<section class="step" id="s3">
+  <div class="step-head"><span class="num">3</span><h2>넓이를 b의 함수로 보기</h2></div>
+  <p>b를 바꿀 때마다 넓이가 하나씩 정해지니 넓이는 b의 함수 S(b)입니다. 위에서 b를 바꾸고 <b>기록하기</b>를 눌러 점을 찍은 뒤, 어떤 식이 그 점들을 모두 지나는지 후보를 골라 보세요.</p>
+  <div class="two">
+    <div class="board"><canvas id="splot" aria-label="b에 따른 넓이 S(b)를 찍은 그래프"></canvas></div>
+    <div class="stack">
+      <div class="seg">
+        <button id="recBtn">현재 b의 넓이 기록하기</button>
+        <button id="clrBtn">기록 지우기</button>
+      </div>
+      <div class="pts" id="pts"></div>
+      <p class="hint">기록값은 n = 1000일 때 과소와 과대의 평균입니다. 처음 두 점(b = 1, 2)은 예시로 찍혀 있습니다.</p>
+      <div class="ctl"><span class="lbl">S(x) 후보 식 겹쳐 보기</span>
+        <div class="seg" id="candSeg"></div></div>
+      <p class="verdict" id="verdict" aria-live="polite"></p>
+    </div>
+  </div>
+</section>
+
+<section class="step" id="s4">
+  <div class="step-head"><span class="num">4</span><h2>왜 미분의 역과정이 될까</h2></div>
+  <p>b를 Δx만큼 늘리면 넓이는 가느다란 조각 하나만큼 늘어납니다. 그 조각은 높이 f(b), 폭 Δx인 직사각형과 거의 같습니다. 1단계의 <b>ΔS 조각 보기</b>와 아래 버튼으로 확인해 보세요.</p>
+  <div class="chain">
+    <span>ΔS ≈ f(b)·Δx</span><span class="arr">→</span>
+    <span>ΔS / Δx ≈ f(b)</span><span class="arr">→</span>
+    <span>Δx → 0 이면</span><span class="arr">→</span>
+    <b>S′(b) = f(b)</b>
+  </div>
+  <div class="seg"><button id="tanBtn" aria-pressed="false">S(b) 그래프에 기울기 f(b)인 직선 긋기</button></div>
+  <p class="ask"><span>발문</span>기울기가 f(b)인 직선이 S의 그래프에 딱 접한다. 그렇다면 넓이 함수 S는 f의 무엇일까? (앞에서 배운 단어로 답해 보자.)</p>
+</section>
+
+<section class="step" id="careers">
+  <div class="step-head"><h2>잘게 나눠 더하기, 이 생각은 어디에 쓰일까</h2></div>
+  <p>오늘의 핵심은 두 가지입니다. 모르는 양을 <b>잘게 나눠 아는 모양으로 바꾼 뒤 더한다</b>는 생각과, <b>변화율을 쌓으면 누적량이 되고 누적량을 미분하면 변화율로 돌아온다</b>는 관계입니다. 그래프의 높이와 넓이가 무엇을 뜻하는지만 바뀔 뿐, 많은 직업이 같은 계산을 합니다.</p>
+  <div class="pairs">
+    <div class="pair"><span class="r">높이</span><span class="a">속도</span><span class="r">넓이</span><span class="a">이동 거리</span></div>
+    <div class="pair"><span class="r">높이</span><span class="a">전력 (kW)</span><span class="r">넓이</span><span class="a">전력량 (kWh)</span></div>
+    <div class="pair"><span class="r">높이</span><span class="a">혈중 약물 농도</span><span class="r">넓이</span><span class="a">몸이 받은 노출량</span></div>
+    <div class="pair"><span class="r">높이</span><span class="a">한계비용</span><span class="r">넓이</span><span class="a">총비용의 증가</span></div>
+    <div class="pair"><span class="r">높이</span><span class="a">물이 흘러드는 양</span><span class="r">넓이</span><span class="a">저수지에 고인 물</span></div>
+  </div>
+  <div class="jobs">
+    <article class="job"><span class="field">의학 · 약학</span><h3>약이 몸에 얼마나 들어갔나</h3>
+      <dl><dt>나누기</dt><dd>채혈 시각 사이의 짧은 시간</dd><dt>더하기</dt><dd>농도 × 시간</dd></dl>
+      <p>혈중 농도 그래프 아래 넓이(AUC)로 약의 노출량을 잽니다. 복제약이 원래 약과 같은 효과를 내는지 판정할 때 이 넓이를 비교합니다.</p>
+      <div class="majors">약학과 · 간호학과 · 의예과 · 제약공학</div></article>
+    <article class="job"><span class="field">의료영상</span><h3>CT 사진으로 종양 부피 재기</h3>
+      <dl><dt>나누기</dt><dd>얇은 단면 사진 한 장 한 장</dd><dt>더하기</dt><dd>단면 넓이 × 두께</dd></dl>
+      <p>몸을 얇게 자른 영상의 단면 넓이를 쌓으면 부피가 됩니다. 넓이를 더하던 오늘의 방법을 한 차원 올린 것입니다.</p>
+      <div class="majors">방사선학과 · 의공학과 · 바이오메디컬공학</div></article>
+    <article class="job"><span class="field">자동차 · 로봇</span><h3>GPS 없이 위치 알아내기</h3>
+      <dl><dt>나누기</dt><dd>0.01초 같은 아주 짧은 시간</dd><dt>더하기</dt><dd>속도 × 시간</dd></dl>
+      <p>터널 안 내비게이션이나 자율주행 로봇은 센서가 잰 속도를 계속 더해 이동 거리를 추정합니다. 다음 단원 ‘속도와 거리’의 내용입니다.</p>
+      <div class="majors">기계공학 · 자동차공학 · 로봇공학 · 항공우주</div></article>
+    <article class="job"><span class="field">건축 · 토목</span><h3>도로를 내려면 흙이 얼마나 필요할까</h3>
+      <dl><dt>나누기</dt><dd>일정 간격으로 자른 지형 단면</dd><dt>더하기</dt><dd>단면 넓이 × 간격</dd></dl>
+      <p>산을 깎고 골짜기를 메울 흙의 양(토공량)을 단면 넓이를 쌓아 계산합니다. 공사비 견적이 여기서 나옵니다.</p>
+      <div class="majors">토목공학 · 건축공학 · 도시공학</div></article>
+    <article class="job"><span class="field">에너지 · 환경</span><h3>우리 집 전기요금과 태양광 발전량</h3>
+      <dl><dt>나누기</dt><dd>15분, 1시간 같은 시간 구간</dd><dt>더하기</dt><dd>전력 × 시간</dd></dl>
+      <p>순간 전력 그래프 아래 넓이가 전력량(kWh)이고, 요금은 이 값으로 매깁니다. 하루 동안 태양광 패널이 만든 에너지도 같은 방법으로 셉니다.</p>
+      <div class="majors">전기공학 · 에너지공학 · 환경공학</div></article>
+    <article class="job"><span class="field">경제 · 경영</span><h3>하나 더 만들 때 드는 비용을 모으면</h3>
+      <dl><dt>나누기</dt><dd>생산량 한 단위씩</dd><dt>더하기</dt><dd>한계비용</dd></dl>
+      <p>한계비용은 총비용의 변화율입니다. 이를 쌓으면 총비용이 되고, 수요곡선 아래 넓이로는 소비자가 얻는 이득(소비자잉여)을 잽니다.</p>
+      <div class="majors">경제학 · 경영학 · 회계 · 금융공학</div></article>
+    <article class="job"><span class="field">데이터 · 인공지능</span><h3>넓이가 곧 확률</h3>
+      <dl><dt>나누기</dt><dd>값의 범위를 잘게 나눈 구간</dd><dt>더하기</dt><dd>확률밀도 × 구간 폭</dd></dl>
+      <p>확률분포 그래프에서 넓이는 확률을 뜻합니다. AI 모델이 얼마나 잘 구분하는지도 ROC 곡선 아래 넓이(AUC)로 평가합니다.</p>
+      <div class="majors">통계학 · 컴퓨터공학 · 데이터사이언스 · AI</div></article>
+    <article class="job"><span class="field">게임 · 그래픽스</span><h3>화면 속 공은 어떻게 날아갈까</h3>
+      <dl><dt>나누기</dt><dd>1/60초 한 프레임</dd><dt>더하기</dt><dd>속도 × 프레임 시간</dd></dl>
+      <p>물리엔진은 매 프레임 속도에 짧은 시간을 곱해 위치에 더합니다. 직사각형을 하나씩 쌓는 오늘의 과소합과 같은 계산입니다.</p>
+      <div class="majors">소프트웨어 · 게임공학 · 디지털콘텐츠</div></article>
+  </div>
+  <p class="ask"><span>진로 연계 과제</span>내 관심 분야에서 ‘그래프의 높이’와 ‘그래프 아래 넓이’가 각각 무엇을 뜻하는 상황을 하나 찾아, 어떻게 잘게 나누고 무엇을 더하는지 한 장으로 설명해 보자.</p>
+</section>
+
+<aside class="note">
+  <span class="tag">교사용 메모 · 2022 개정 교육과정 범위</span>
+  <ul>
+    <li>성취기준 [12미적Ⅰ-03-03]은 정적분의 개념을 <b>탐구</b>하도록 하고, 정적분은 그래프와 x축 사이의 <b>넓이</b>로 정의합니다. 이 활동은 그 넓이를 어떻게 구할지 직관적으로 탐구하는 데까지만 다룹니다.</li>
+    <li>구분구적법과 급수의 합을 이용한 정적분의 정의는 『미적분Ⅱ』 내용입니다(지도서 198쪽). 정적분을 lim Σ f(x<sub>k</sub>)Δx로 정의하거나 지필·수행평가에 출제하지 않습니다.</li>
+    <li>“n이 한없이 커지면”은 표와 그래프로 관찰하는 수준에서 다룹니다. 수열의 극한 계산은 하지 않습니다.</li>
+    <li>4단계의 ΔS ≈ f(b)Δx 논리는 교과서 125쪽 이후 넓이 함수 S(x)와 S′(x) = f(x) 설명으로 바로 이어집니다.</li>
+  </ul>
+</aside>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const MONO='"JetBrains Mono", ui-monospace, Consolas, monospace';
+const BODY='"IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif';
+const FUNCS={
+  sq:{label:'y = x²',f:x=>x*x,F:x=>x*x*x/3},
+  lin:{label:'y = 2x',f:x=>2*x,F:x=>x*x},
+  cu:{label:'y = x³',f:x=>x*x*x,F:x=>x*x*x*x/4}
+};
+const CANDS=[
+  {id:'a',label:'x²',g:x=>x*x},
+  {id:'b',label:'x²/2',g:x=>x*x/2},
+  {id:'c',label:'x³/3',g:x=>x*x*x/3},
+  {id:'d',label:'x³/2',g:x=>x*x*x/2},
+  {id:'e',label:'x⁴/4',g:x=>x*x*x*x/4}
+];
+const st={fn:'sq',b:1,n:8,mode:'both',gather:false,inc:false,t:0,points:[],cand:null,tangent:false};
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function colors(){const s=getComputedStyle(document.documentElement);const g=n=>s.getPropertyValue(n).trim();
+  return{ink:g('--ink'),muted:g('--muted'),grid:g('--grid'),line:g('--line'),under:g('--under'),over:g('--over'),inc:g('--inc'),cand:g('--cand'),panel:g('--panel')};}
+function sums(f,b,n){const dx=b/n;let lo=0,hi=0;for(let k=0;k<n;k++){lo+=f(k*dx);hi+=f((k+1)*dx);}return{lo:lo*dx,hi:hi*dx};}
+function measured(b){const s=sums(FUNCS[st.fn].f,b,1000);return (s.lo+s.hi)/2;}
+const fmt=(v,d)=>v.toFixed(d===undefined?4:d);
+const trim=v=>String(+v.toFixed(3));
+function setup(c,ratio,minH,maxH){const w=c.parentElement.clientWidth-20;const h=Math.min(maxH,Math.max(minH,Math.round(w*ratio)));const dpr=window.devicePixelRatio||1;
+  c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);c.style.height=h+'px';const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);return{ctx,w,h};}
+function niceStep(range,target){const raw=range/target;const p=Math.pow(10,Math.floor(Math.log10(raw)));const m=raw/p;return (m<1.5?1:m<3.5?2:m<7.5?5:10)*p;}
+function frame(w,h,xmax,ymax){const left=48,right=w-14,top=16,bot=h-30;
+  return{left,right,top,bot,X:x=>left+x/xmax*(right-left),Y:y=>bot-y/ymax*(bot-top)};}
+function axes(ctx,m,xmax,ymax,C){
+  const xs=niceStep(xmax,6),ys=niceStep(ymax,5);ctx.lineWidth=1;ctx.font='11px '+MONO;
+  for(let x=0;x<=xmax+1e-9;x+=xs){const px=Math.round(m.X(x))+.5;ctx.strokeStyle=C.grid;ctx.beginPath();ctx.moveTo(px,m.top);ctx.lineTo(px,m.bot);ctx.stroke();
+    ctx.fillStyle=C.muted;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(trim(x),px,m.bot+7);}
+  for(let y=0;y<=ymax+1e-9;y+=ys){const py=Math.round(m.Y(y))+.5;ctx.strokeStyle=C.grid;ctx.beginPath();ctx.moveTo(m.left,py);ctx.lineTo(m.right,py);ctx.stroke();
+    ctx.fillStyle=C.muted;ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(trim(y),m.left-7,py);}
+  ctx.strokeStyle=C.ink;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(m.left,m.top);ctx.lineTo(m.left,m.bot);ctx.lineTo(m.right,m.bot);ctx.stroke();
+}
+function curve(ctx,m,g,x0,x1,color,width,dash){ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash||[]);ctx.beginPath();
+  const N=240;for(let i=0;i<=N;i++){const x=x0+(x1-x0)*i/N;const px=m.X(x),py=m.Y(g(x));i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.stroke();ctx.restore();}
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+
+const mainC=$('#main'),sC=$('#splot');
+function drawMain(){
+  const F=FUNCS[st.fn],f=F.f,b=st.b,n=st.n,dx=b/n,C=colors();
+  const {ctx,w,h}=setup(mainC,0.64,280,560);
+  const xmax=Math.max(1.2,b+Math.max(0.3*b,dx)),ymax=Math.max(f(b)*1.3,0.5);
+  const m=frame(w,h,xmax,ymax);axes(ctx,m,xmax,ymax,C);
+  ctx.save();ctx.beginPath();ctx.rect(m.left,m.top-2,m.right-m.left,m.bot-m.top+2);ctx.clip();
+  const edge=n<=60;
+  function rect(x0,x1,y0,y1,color,alpha){const px=m.X(x0),pw=m.X(x1)-px,py=m.Y(y1),ph=m.Y(y0)-py;
+    ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.fillRect(px,py,pw,ph);ctx.globalAlpha=1;
+    if(edge){ctx.strokeStyle=color;ctx.lineWidth=1;ctx.strokeRect(px,py,pw,ph);}}
+  if(st.mode==='under'){for(let k=0;k<n;k++)rect(k*dx,(k+1)*dx,0,f(k*dx),C.under,.3);}
+  else if(st.mode==='over'){for(let k=0;k<n;k++)rect(k*dx,(k+1)*dx,0,f((k+1)*dx),C.over,.3);}
+  else{const e=ease(st.t);
+    for(let k=0;k<n;k++)rect(k*dx,(k+1)*dx,0,f(k*dx),C.under,.3);
+    const label=n<=12;
+    if(st.t>0){ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle=C.over;ctx.lineWidth=1;
+      for(let k=0;k<n;k++){const px=m.X(k*dx),pw=m.X((k+1)*dx)-px,py=m.Y(f((k+1)*dx)),ph=m.Y(f(k*dx))-py;ctx.strokeRect(px,py,pw,ph);}ctx.restore();}
+    for(let k=0;k<n;k++){const s=(n-k)*dx*e;rect(k*dx+s,(k+1)*dx+s,f(k*dx),f((k+1)*dx),C.over,.6);
+      if(label){const cx=m.X(k*dx+s+dx/2),y0=m.Y(f(k*dx)),y1=m.Y(f((k+1)*dx));if(y0-y1>13){ctx.fillStyle=C.ink;ctx.font='600 11px '+MONO;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(k+1),cx,(y0+y1)/2);}}}
+    if(st.t>0.98){ctx.fillStyle=C.ink;ctx.font='600 12px '+BODY;ctx.textAlign='right';ctx.textBaseline='bottom';
+      ctx.fillText('높이 f(b) = '+trim(f(b))+', 폭 Δx = '+trim(dx),m.right-4,m.Y(f(b))-6);}}
+  if(st.inc){const x0=b,x1=b+Math.max(dx,0.04*b);ctx.globalAlpha=.55;ctx.fillStyle=C.inc;ctx.beginPath();ctx.moveTo(m.X(x0),m.Y(0));
+    for(let i=0;i<=30;i++){const x=x0+(x1-x0)*i/30;ctx.lineTo(m.X(x),m.Y(f(x)));}ctx.lineTo(m.X(x1),m.Y(0));ctx.closePath();ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle=C.inc;ctx.setLineDash([4,3]);ctx.lineWidth=1.5;ctx.strokeRect(m.X(x0),m.Y(f(b)),m.X(x1)-m.X(x0),m.Y(0)-m.Y(f(b)));ctx.setLineDash([]);
+    ctx.fillStyle=C.inc;ctx.font='600 12.5px '+BODY;ctx.textBaseline='bottom';const tx=m.X(x1)+6;ctx.textAlign=tx>m.right-120?'right':'left';
+    ctx.fillText('ΔS ≈ f(b)·Δx',ctx.textAlign==='right'?m.X(x0)-6:tx,m.Y(f(b))-4);}
+  curve(ctx,m,f,0,xmax,C.ink,2.4);
+  ctx.strokeStyle=C.muted;ctx.setLineDash([3,4]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(m.X(b),m.top);ctx.lineTo(m.X(b),m.bot);ctx.stroke();ctx.setLineDash([]);
+  ctx.restore();
+  ctx.fillStyle=C.ink;ctx.font='600 14px '+MONO;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(F.label,m.left+10,m.top+4);
+  ctx.fillStyle=C.muted;ctx.font='12px '+MONO;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('b',m.X(b),m.bot+19);
+  const s=sums(f,b,n);$('#rLo').textContent=fmt(s.lo);$('#rHi').textContent=fmt(s.hi);$('#rGap').textContent=fmt(s.hi-s.lo);
+  let hint;
+  if(st.mode!=='both')hint='참값은 과소와 과대 사이에 있습니다. ‘둘 다’로 비교해 보세요.';
+  else if(!st.gather)hint='주황 조각 k번은 높이가 f(오른쪽 끝) − f(왼쪽 끝)인 띠입니다. ‘차이 조각 모으기’를 눌러 보세요.';
+  else{const pts=[];for(let k=0;k<=Math.min(n,4);k++)pts.push(trim(f(k*dx)));
+    hint='조각 1은 높이 '+pts[0]+'~'+pts[1]+(n>1?', 조각 2는 '+pts[1]+'~'+pts[2]:'')+(n>2?' …':'')+'. 앞 조각이 끝난 높이에서 다음 조각이 시작하니, 옆으로 밀면 빈틈없이 이어져 0부터 f(b)까지 한 기둥이 됩니다. 차이 = f(b) × Δx = '+trim(f(b))+' × '+trim(dx)+' = '+fmt(f(b)*dx)+'.';}
+  $('#gapHint').textContent=hint;
+}
+function renderTable(){const f=FUNCS[st.fn].f;const base=sums(f,st.b,4),A=base.lo,B=base.hi,pc=v=>((v-A)/(B-A)*100).toFixed(2)+'%';
+  const rows=[4,8,16,100,1000,10000].map(n=>{const s=sums(f,st.b,n);
+  return '<tr><td>'+n+'</td><td class="u">'+fmt(s.lo,5)+'</td><td class="o">'+fmt(s.hi,5)+'</td><td>'+fmt(s.hi-s.lo,5)+'</td>'+
+    '<td class="barcell"><div class="track"><div class="span" style="left:'+pc(s.lo)+';width:calc('+pc(s.hi)+' - '+pc(s.lo)+')"></div><i class="lo" style="left:'+pc(s.lo)+'"></i><i class="hi" style="left:'+pc(s.hi)+'"></i></div></td></tr>';});
+  $('#tbody').innerHTML=rows.join('');}
+function drawS(){
+  const F=FUNCS[st.fn],C=colors();const {ctx,w,h}=setup(sC,0.72,280,480);
+  const xmax=3.2,ymax=Math.max(F.F(3.2)*1.08,1);const m=frame(w,h,xmax,ymax);axes(ctx,m,xmax,ymax,C);
+  ctx.save();ctx.beginPath();ctx.rect(m.left,m.top-2,m.right-m.left,m.bot-m.top+2);ctx.clip();
+  const cand=CANDS.find(c=>c.id===st.cand);if(cand)curve(ctx,m,cand.g,0,xmax,C.cand,2.2,[7,5]);
+  ctx.strokeStyle=C.muted;ctx.setLineDash([3,4]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(m.X(st.b),m.top);ctx.lineTo(m.X(st.b),m.bot);ctx.stroke();ctx.setLineDash([]);
+  if(st.tangent){const b=st.b,v=measured(b),k=F.f(b),d=0.75;ctx.strokeStyle=C.inc;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m.X(b-d),m.Y(v-k*d));ctx.lineTo(m.X(b+d),m.Y(v+k*d));ctx.stroke();
+    ctx.fillStyle=C.inc;ctx.beginPath();ctx.arc(m.X(b),m.Y(v),5,0,Math.PI*2);ctx.fill();
+    ctx.font='600 12.5px '+BODY;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('기울기 f(b) = '+trim(k),m.left+10,m.top+26);}
+  for(const p of st.points){ctx.fillStyle=C.ink;ctx.beginPath();ctx.arc(m.X(p.b),m.Y(p.v),5,0,Math.PI*2);ctx.fill();}
+  ctx.restore();
+  ctx.fillStyle=C.ink;ctx.font='600 14px '+MONO;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('S(b) = 0부터 b까지의 넓이',m.left+10,m.top+4);
+  if(!st.points.length){ctx.fillStyle=C.muted;ctx.font='13px '+BODY;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('b를 바꾸고 ‘기록하기’를 눌러 점을 찍으세요',(m.left+m.right)/2,(m.top+m.bot)/2);}
+  $('#pts').innerHTML=st.points.map(p=>'<span class="pt">b = '+trim(p.b)+' → '+fmt(p.v)+'</span>').join('');
+  const vd=$('#verdict');
+  if(!cand){vd.className='verdict';vd.textContent='';}
+  else if(st.points.length<2){vd.className='verdict';vd.textContent='점을 두 개 이상 찍어야 판단할 수 있어요.';}
+  else{const ok=st.points.every(p=>Math.abs(cand.g(p.b)-p.v)<=Math.max(0.002,0.002*p.v));
+    vd.className='verdict '+(ok?'ok':'no');vd.textContent=ok?'S(x) = '+cand.label+' 가 기록한 점을 모두 지나요.':'S(x) = '+cand.label+' 는 어긋나는 점이 있어요.';}
+}
+function drawAll(){drawMain();renderTable();drawS();}
+
+function press(groupSel,attr,val){document.querySelectorAll(groupSel+' button').forEach(bt=>bt.setAttribute('aria-pressed',String(bt.dataset[attr]===val)));}
+function resetPoints(){st.points=[1,2].map(b=>({b,v:measured(b)}));}
+$('#fnSeg').addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;st.fn=bt.dataset.fn;press('#fnSeg','fn',st.fn);st.cand=null;press('#candSeg','id','');resetPoints();drawAll();});
+$('#bIn').addEventListener('input',e=>{st.b=+e.target.value;$('#bOut').textContent=trim(st.b);drawAll();});
+function setN(n){st.n=n;$('#nIn').value=Math.min(n,200);$('#nOut').textContent=n;drawMain();}
+$('#nIn').addEventListener('input',e=>setN(+e.target.value));
+$('#nChips').addEventListener('click',e=>{const bt=e.target.closest('button');if(bt)setN(+bt.dataset.n);});
+$('#modeSeg').addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;st.mode=bt.dataset.mode;press('#modeSeg','mode',st.mode);
+  if(st.mode!=='both'&&st.gather){st.gather=false;st.t=0;$('#gatherBtn').setAttribute('aria-pressed','false');}drawMain();});
+let raf=0;
+function animateTo(target){cancelAnimationFrame(raf);if(reduce){st.t=target;drawMain();return;}
+  const from=st.t,t0=performance.now(),dur=750;const step=now=>{const k=Math.min(1,(now-t0)/dur);st.t=from+(target-from)*k;drawMain();if(k<1)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);}
+$('#gatherBtn').addEventListener('click',()=>{st.gather=!st.gather;$('#gatherBtn').setAttribute('aria-pressed',String(st.gather));
+  if(st.gather){st.mode='both';press('#modeSeg','mode','both');if(st.inc){st.inc=false;$('#incBtn').setAttribute('aria-pressed','false');}}
+  animateTo(st.gather?1:0);});
+$('#incBtn').addEventListener('click',()=>{st.inc=!st.inc;$('#incBtn').setAttribute('aria-pressed',String(st.inc));
+  if(st.inc&&st.gather){st.gather=false;$('#gatherBtn').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);st.t=0;}drawMain();});
+$('#recBtn').addEventListener('click',()=>{st.points=st.points.filter(p=>p.b!==st.b);st.points.push({b:st.b,v:measured(st.b)});st.points.sort((a,c)=>a.b-c.b);drawS();});
+$('#clrBtn').addEventListener('click',()=>{st.points=[];drawS();});
+$('#candSeg').innerHTML=CANDS.map(c=>'<button class="chip" data-id="'+c.id+'" aria-pressed="false">'+c.label+'</button>').join('');
+$('#candSeg').addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;st.cand=st.cand===bt.dataset.id?null:bt.dataset.id;press('#candSeg','id',st.cand||'');drawS();});
+$('#tanBtn').addEventListener('click',()=>{st.tangent=!st.tangent;$('#tanBtn').setAttribute('aria-pressed',String(st.tangent));drawS();});
+
+resetPoints();drawAll();
+let rt=0;const ro=new ResizeObserver(()=>{clearTimeout(rt);rt=setTimeout(drawAll,60);});ro.observe(mainC.parentElement);ro.observe(sC.parentElement);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawAll);
+new MutationObserver(drawAll).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(drawAll);
+})();
+</script>
+</body>
+</html>
