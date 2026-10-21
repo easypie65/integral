@@ -1,94 +1,134 @@
-<!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>직사각형으로 넓이 쫓기</title>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>넓이에서 미분으로</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=IBM+Plex+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: 모눈종이 위 한 줄 흐름. 실험(그래프+조작판) → 표 → 넓이 함수 → 진로 → 교사 메모 */
+/* Layout: 모눈종이 위 한 줄 흐름. 도입 예측 → 활동 1~4 (예측 · 실험 · 확인 · 설명) → 정리 → 도전 → 진로 */
 :root{
   --paper:#F4F7F5; --panel:#FFFFFF; --ink:#17242B; --muted:#56676C; --grid:#DDE7E3; --gridf:#E6EEEB; --line:#C9D6D1;
-  --under:#2A6C8C; --over:#CC7420; --inc:#AE3B74; --cand:#4E8A33;
+  --under:#2A6C8C; --over:#CC7420; --inc:#AE3B74; --cand:#3F7F2A; --neg:#C0392F;
   --display:"Nanum Myeongjo","Batang","AppleMyungjo",serif;
   --body:"IBM Plex Sans KR","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
   --mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#10181C; --panel:#172227; --ink:#E3ECEE; --muted:#93A6AB; --grid:#25343B; --gridf:#18242A; --line:#2E3F46;
-  --under:#6DB3D4; --over:#F0A55A; --inc:#E37DB0; --cand:#8CC66C; color-scheme:dark}}
+  --under:#6DB3D4; --over:#F0A55A; --inc:#E37DB0; --cand:#8CC66C; --neg:#F07C74; color-scheme:dark}}
 :root[data-theme="dark"]{
   --paper:#10181C; --panel:#172227; --ink:#E3ECEE; --muted:#93A6AB; --grid:#25343B; --gridf:#18242A; --line:#2E3F46;
-  --under:#6DB3D4; --over:#F0A55A; --inc:#E37DB0; --cand:#8CC66C; color-scheme:dark}
+  --under:#6DB3D4; --over:#F0A55A; --inc:#E37DB0; --cand:#8CC66C; --neg:#F07C74; color-scheme:dark}
 
 *{box-sizing:border-box}
-body{margin:0}
 body{background-color:var(--paper);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.65;
   background-image:linear-gradient(var(--gridf) 1px,transparent 1px),linear-gradient(90deg,var(--gridf) 1px,transparent 1px);
   background-size:24px 24px;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
-.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 72px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
 h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.3}
-h1{font-size:clamp(28px,5vw,44px);font-weight:800;letter-spacing:-.01em}
+h1{font-size:clamp(28px,5vw,42px);font-weight:800;letter-spacing:-.01em}
 h2{font-size:clamp(21px,3vw,27px);font-weight:800}
 h3{font-size:17px;font-weight:700}
-p{margin:0;max-width:68ch}
+p{margin:0;max-width:70ch}
+a{color:var(--under)}
 .eyebrow{font-size:12.5px;letter-spacing:.08em;color:var(--muted);font-weight:600}
 .lede{font-size:17px;color:var(--muted);max-width:62ch}
 header{display:flex;flex-direction:column;gap:12px}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-sup{font-size:.7em}
+.hint{font-size:13.5px;color:var(--muted)}
 
-.step{display:flex;flex-direction:column;gap:16px}
+nav.prog{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line);padding-block:8px;margin-top:-28px}
+nav.prog ol{list-style:none;margin:0;padding:0;display:flex;gap:6px;overflow-x:auto}
+nav.prog a{display:flex;align-items:center;gap:7px;white-space:nowrap;text-decoration:none;color:var(--ink);font-size:13px;padding:4px 11px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
+nav.prog a:hover{border-color:var(--ink)}
+.dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--muted);flex:none}
+.dot.part{background:linear-gradient(90deg,var(--cand) 50%,transparent 50%);border-color:var(--cand)}
+.dot.full{background:var(--cand);border-color:var(--cand)}
+
+section{scroll-margin-top:64px}
+.step{display:flex;flex-direction:column;gap:18px}
 .step-head{display:flex;gap:14px;align-items:baseline}
 .num{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--paper);background:var(--ink);border-radius:4px;padding:1px 8px;flex:none;transform:translateY(-3px)}
-.ask{border-left:3px solid var(--inc);padding:4px 0 4px 14px;color:var(--ink);font-weight:500}
-.ask span{display:block;font-size:12px;color:var(--inc);letter-spacing:.06em;font-weight:600}
+.big-q{font-size:16.5px;font-weight:500}
 
-.lab{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:18px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.kind{font-size:12px;font-weight:600;letter-spacing:.08em}
+.k-pred{color:var(--inc)} .k-check{color:var(--under)} .k-exp{color:var(--cand)}
+.qp{font-weight:500}
+.opts{display:grid;gap:8px}
+.opts.grid4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:760px){.opts.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.opt{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;padding:9px 12px;font-size:14.5px;line-height:1.5}
+.opts.grid4 .opt{flex-direction:column;align-items:stretch}
+.ol{font-family:var(--mono);font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:4px;padding:0 6px;flex:none;align-self:flex-start}
+.opt[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.opt[aria-pressed="true"] .ol{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.opt.ok{border-color:var(--cand);box-shadow:inset 0 0 0 1px var(--cand)}
+.opt.no{border-color:var(--neg);box-shadow:inset 0 0 0 1px var(--neg)}
+.opt:disabled{cursor:default}
+.opt:disabled:not([aria-pressed="true"]){opacity:.55}
+.qa{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.qmsg{font-size:13px;color:var(--muted)}
+.fb{display:flex;flex-direction:column;gap:8px}
+.fb:empty{display:none}
+.fb .ok,.fb .no,.fb .neutral{border-left:3px solid var(--cand);padding:2px 0 2px 12px;font-size:14.5px}
+.fb .no{border-left-color:var(--over)}
+.fb .neutral{border-left-color:var(--inc)}
+.fb details summary{cursor:pointer;font-size:13.5px;color:var(--muted);font-weight:600}
+.fb details p{margin-top:8px}
+
+button{font:inherit;font-size:13.5px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:6px;padding:5px 11px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--inc);outline-offset:2px}
+button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+button.primary:disabled{opacity:.45;cursor:default}
+button[aria-pressed="true"]:not(.opt){background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip{font-family:var(--mono);font-size:12.5px;padding:3px 9px}
+input[type=text],textarea{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+input[type=text]{width:11em;font-family:var(--mono)}
+textarea{width:100%;min-height:120px;resize:vertical;line-height:1.6}
+input[type=range]{width:100%;accent-color:var(--ink)}
+
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
 @media (max-width:860px){.lab{grid-template-columns:minmax(0,1fr)}}
-.board{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
+.board{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.board .cap{font-size:12.5px;color:var(--muted);padding:0 4px}
 canvas{display:block;width:100%}
-.controls{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:16px}
+.controls{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:15px}
 .ctl{display:flex;flex-direction:column;gap:7px}
 .ctl label,.ctl .lbl{font-size:13px;font-weight:600;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
 .ctl output{font-family:var(--mono);color:var(--ink)}
-input[type=range]{width:100%;accent-color:var(--ink)}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
-button{font:inherit;font-size:13.5px;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:6px;padding:5px 11px;cursor:pointer}
-button:hover{border-color:var(--ink)}
-button:focus-visible,input:focus-visible{outline:2px solid var(--inc);outline-offset:2px}
-button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-.chip{font-family:var(--mono);font-size:12.5px;padding:3px 9px}
-.readout{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px;border-top:1px solid var(--line);padding-top:12px}
+.readout{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px;border-top:1px solid var(--line);padding-top:12px;margin:0}
 .readout dt{display:flex;align-items:center;gap:8px}
 .readout dd{margin:0;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
 .sw{width:11px;height:11px;border-radius:2px;flex:none}
-.sw.u{background:var(--under)} .sw.o{background:var(--over)} .sw.g{background:var(--ink)}
-.hint{font-size:13px;color:var(--muted)}
+.sw.u{background:var(--under)} .sw.o{background:var(--over)} .sw.g{background:var(--ink)} .sw.i{background:var(--inc)} .sw.n{background:var(--neg)}
+.deep{border-top:1px dashed var(--line);padding-top:10px}
+.deep summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
+.deep[open] summary{color:var(--ink)}
+.deep-body{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding-top:10px}
+
+.gate .locked{border:1px dashed var(--line);border-radius:10px;padding:26px 18px;text-align:center;color:var(--muted);font-size:14px;background:var(--panel)}
 
 .tablebox{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
-table{border-collapse:collapse;width:100%;min-width:480px;font-size:14px}
-th,td{padding:8px 14px;text-align:right;border-bottom:1px solid var(--line)}
-th{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:.03em}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{padding:7px 14px;text-align:right;border-bottom:1px solid var(--line)}
+th{font-size:12.5px;color:var(--muted);font-weight:600}
 th:first-child,td:first-child{text-align:left}
 td{font-family:var(--mono);font-variant-numeric:tabular-nums}
 tr:last-child td{border-bottom:none}
 td.u{color:var(--under)} td.o{color:var(--over)}
-td.barcell{width:34%;min-width:160px}
+td.barcell{width:32%;min-width:150px}
 .track{position:relative;height:14px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .track::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--line)}
 .track .span{position:absolute;top:3px;bottom:3px;background:var(--ink);opacity:.18;border-radius:2px}
 .track i{position:absolute;top:0;bottom:0;width:3px;margin-left:-1.5px;border-radius:1px}
 .track i.lo{background:var(--under)} .track i.hi{background:var(--over)}
-table{min-width:640px}
 
-.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:860px){.two{grid-template-columns:minmax(0,1fr)}}
-.stack{display:flex;flex-direction:column;gap:14px;min-width:0}
 .pts{display:flex;flex-wrap:wrap;gap:6px;min-height:28px}
 .pt{font-family:var(--mono);font-size:12.5px;border:1px dashed var(--line);border-radius:5px;padding:2px 8px}
 .verdict{font-size:14px;font-weight:600;min-height:1.6em}
@@ -96,6 +136,23 @@ table{min-width:640px}
 .chain{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-family:var(--mono);font-size:14.5px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
 .chain .arr{color:var(--muted)}
 .chain b{color:var(--inc);font-weight:600}
+.mini-f{max-width:260px}
+.cls-row{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px;align-items:center}
+@media (max-width:520px){.cls-row{grid-template-columns:minmax(0,1fr)}}
+.cls-row .tex{font-family:var(--mono);font-size:15px}
+.checklist{display:flex;flex-direction:column;gap:6px;font-size:14px;margin:0;padding:0;list-style:none}
+.checklist label{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
+.checklist input{margin-top:5px;accent-color:var(--cand)}
+
+.summary{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.summary{grid-template-columns:minmax(0,1fr)}}
+.res{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr auto;gap:3px 12px;font-size:14px}
+.res .r{font-family:var(--mono);text-align:right}
+.res .r.ok{color:var(--cand)} .res .r.no{color:var(--over)} .res .r.na{color:var(--muted)}
+.flags{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.score{font-family:var(--mono);font-size:28px;font-weight:600}
+.quote{white-space:pre-wrap;font-size:14px;border-left:3px solid var(--line);padding-left:12px;color:var(--ink)}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px}
 
 .pairs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
 @media (max-width:860px){.pairs{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -103,7 +160,6 @@ table{min-width:640px}
 .pair{border-top:2px solid var(--ink);padding-top:8px;display:flex;flex-direction:column;gap:2px;font-size:14px}
 .pair .r{color:var(--muted);font-size:12.5px}
 .pair .a{font-weight:600}
-
 .jobs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 @media (max-width:1000px){.jobs{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.jobs{grid-template-columns:minmax(0,1fr)}}
@@ -112,111 +168,275 @@ table{min-width:640px}
 .job dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13.5px}
 .job dt{color:var(--muted);white-space:nowrap}
 .job dd{margin:0}
-.job p{font-size:13.5px;color:var(--ink)}
+.job p{font-size:13.5px}
 .job .majors{font-size:12.5px;color:var(--muted);margin-top:auto;border-top:1px solid var(--line);padding-top:8px}
-
-.note{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:10px}
-.note ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px;max-width:80ch}
-.note .tag{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
-@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+.fgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 16px}
+@media (max-width:640px){.fgrid{grid-template-columns:minmax(0,1fr)}}
+.fgrid .wide{grid-column:1/-1}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld label{font-size:13.5px;font-weight:600}
+.fld label i{color:var(--neg);font-style:normal}
+.fld input[type=text]{width:100%;font-family:var(--body)}
+.fld textarea{min-height:84px}
+.fld.bad input,.fld.bad textarea{border-color:var(--neg)}
+.inl{display:flex;gap:8px;align-items:flex-start;font-size:14px;cursor:pointer}
+.inl input{margin-top:5px;accent-color:var(--cand)}
+#cf-msg.ok{color:var(--cand);font-weight:600} #cf-msg.no{color:var(--neg)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
-</head>
-<body>
 
 <div class="wrap">
 <header>
-  <div class="eyebrow">미적분Ⅰ · Ⅲ. 적분 · 02 정적분 도입 활동</div>
+  <div class="eyebrow">미적분Ⅰ · 정적분</div>
   <h1>넓이를 쫓다 보니 미분이 나왔다</h1>
-  <p class="lede">곡선 아래 넓이는 공식이 없습니다. 이미 아는 도형인 직사각형으로 잘라 어림하고, 조각을 늘려 가며 참값을 좁혀 봅시다. 마지막에는 그 넓이가 우리가 배운 부정적분과 만납니다.</p>
+  <p class="lede">곡선 아래 넓이는 어떻게 구할까요? 그리고 넓이를 구하는 일이 왜 미분을 거꾸로 하는 일과 같아질까요? 각 활동에서 먼저 예측하고, 직접 움직여 확인한 뒤, 내 말로 설명해 봅시다.</p>
 </header>
 
+<nav class="prog" aria-label="활동 진행">
+  <ol>
+    <li><a href="#s0"><span class="dot" data-sec="s0"></span>시작</a></li>
+    <li><a href="#s1"><span class="dot" data-sec="s1"></span>1 끼워 넣기</a></li>
+    <li><a href="#s2"><span class="dot" data-sec="s2"></span>2 넓이 함수</a></li>
+    <li><a href="#s3"><span class="dot" data-sec="s3"></span>3 높이와 속도</a></li>
+    <li><a href="#s4"><span class="dot" data-sec="s4"></span>4 아래끝과 C</a></li>
+    <li><a href="#s5"><span class="dot" data-sec="s5"></span>정리</a></li>
+    <li><a href="#s7">진로 과제</a></li>
+  </ol>
+</nav>
+
+<!-- 시작 -->
+<section class="step" id="s0">
+  <div class="step-head"><span class="num">0</span><h2>먼저 어림해 보기</h2></div>
+  <div class="card">
+    <span class="kind k-pred">예측</span>
+    <p class="qp">y = x²의 그래프와 x축, 직선 x = 1로 둘러싸인 부분의 넓이는 얼마쯤일까요? 한 변이 1인 정사각형의 넓이가 1인 것을 기준으로 어림해 보세요.</p>
+    <div class="qa"><input type="text" id="pred0in" inputmode="decimal" aria-label="넓이 예측값" placeholder="예: 0.4"><button type="button" class="primary" id="pred0btn">예측 확정</button><span class="qmsg" id="pred0msg"></span></div>
+  </div>
+</section>
+
+<!-- 활동 1 -->
 <section class="step" id="s1">
-  <div class="step-head"><span class="num">1</span><h2>직사각형으로 어림하기</h2></div>
-  <p>구간 [0, b]를 n개로 똑같이 나눠 직사각형을 세웁니다. 각 칸의 <b style="color:var(--under)">왼쪽 끝</b> 높이를 쓰면 곡선 아래에 들어가고(과소), <b style="color:var(--over)">오른쪽 끝</b> 높이를 쓰면 곡선 위로 삐져나옵니다(과대). 참값은 두 값 사이에 있습니다.</p>
+  <div class="step-head"><span class="num">1</span><h2>직사각형으로 끼워 넣기</h2></div>
+  <p class="big-q">넓이 공식이 없는 도형은 이미 아는 도형인 직사각형으로 잘라 위아래에서 끼워 넣을 수 있습니다.</p>
+  <div class="card" data-q="q1"></div>
+  <div class="gate" data-gate="g1">
+    <div class="locked">위의 예측을 확정하면 실험이 열립니다.</div>
+    <div class="gated" hidden>
+      <div class="step">
+        <p>구간 [0, 1]을 n개로 똑같이 나눠, 각 칸의 <b style="color:var(--under)">왼쪽 끝 높이</b>와 <b style="color:var(--over)">오른쪽 끝 높이</b>로 직사각형을 만듭니다.</p>
+        <div class="lab">
+          <div class="board"><canvas id="c1" aria-label="직사각형으로 넓이를 어림한 그래프"></canvas></div>
+          <div class="controls">
+            <div class="ctl"><span class="lbl">함수</span>
+              <div class="seg" id="fn1">
+                <button type="button" data-fn="inc" aria-pressed="true">y = x²</button>
+                <button type="button" data-fn="dec" aria-pressed="false">y = 1 − x²</button>
+              </div></div>
+            <div class="ctl"><label for="n1">직사각형 개수 n <output id="n1out">8</output></label>
+              <input id="n1" type="range" min="1" max="200" step="1" value="8">
+              <div class="seg" id="n1chips">
+                <button type="button" class="chip" data-n="4">4</button><button type="button" class="chip" data-n="8">8</button><button type="button" class="chip" data-n="16">16</button><button type="button" class="chip" data-n="50">50</button><button type="button" class="chip" data-n="1000">1000</button>
+              </div></div>
+            <div class="ctl"><span class="lbl">보기</span>
+              <div class="seg" id="mode1">
+                <button type="button" data-mode="left" aria-pressed="false">왼쪽 끝</button>
+                <button type="button" data-mode="right" aria-pressed="false">오른쪽 끝</button>
+                <button type="button" data-mode="both" aria-pressed="true">둘 다</button>
+              </div></div>
+            <dl class="readout">
+              <dt><span class="sw u"></span>왼쪽 끝 합</dt><dd id="r1L">–</dd>
+              <dt><span class="sw o"></span>오른쪽 끝 합</dt><dd id="r1R">–</dd>
+              <dt><span class="sw g"></span>두 합의 차이</dt><dd id="r1D">–</dd>
+            </dl>
+            <details class="deep" id="deep1">
+              <summary>심화 · 두 합은 왜 한 값으로 모일까</summary>
+              <div class="deep-body">
+                <button type="button" id="gather1" aria-pressed="false">차이 조각 모으기</button>
+                <p class="hint" id="deep1hint"></p>
+              </div>
+            </details>
+          </div>
+        </div>
+        <div class="tablebox"><table>
+          <thead><tr><th>n</th><th>왼쪽 끝 합</th><th>오른쪽 끝 합</th><th>차이</th><th>참값이 있을 수 있는 범위</th></tr></thead>
+          <tbody id="t1"></tbody>
+        </table></div>
+        <div class="card" data-q="q2"></div>
+        <div class="card" data-q="q3"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 활동 2 -->
+<section class="step" id="s2">
+  <div class="step-head"><span class="num">2</span><h2>넓이를 함수로 보기</h2></div>
+  <p class="big-q">오른쪽 끝 b를 바꿀 때마다 넓이가 하나씩 정해지므로, 넓이는 b의 함수 S(b)입니다. 이제 아주 잘게 나눠 거의 정확한 넓이를 쓰겠습니다.</p>
   <div class="lab">
-    <div class="board"><canvas id="main" aria-label="곡선 아래 넓이를 직사각형으로 어림한 그래프"></canvas></div>
+    <div class="two" style="grid-column:1/-1">
+      <div class="board"><span class="cap">0부터 b까지의 넓이</span><canvas id="c2a" aria-label="0부터 b까지 곡선 아래 넓이"></canvas></div>
+      <div class="board"><span class="cap">기록한 넓이 S(b)</span><canvas id="c2b" aria-label="b에 따른 넓이 S(b)를 찍은 그래프"></canvas></div>
+    </div>
+  </div>
+  <div class="lab">
     <div class="controls">
       <div class="ctl"><span class="lbl">함수</span>
-        <div class="seg" id="fnSeg">
-          <button data-fn="sq" aria-pressed="true">y = x²</button>
-          <button data-fn="lin" aria-pressed="false">y = 2x</button>
-          <button data-fn="cu" aria-pressed="false">y = x³</button>
+        <div class="seg fnSeg2">
+          <button type="button" data-fn="sq" aria-pressed="true">y = x²</button>
+          <button type="button" data-fn="lin" aria-pressed="false">y = 2x</button>
+          <button type="button" data-fn="cu" aria-pressed="false">y = x³</button>
         </div></div>
-      <div class="ctl"><label for="bIn">오른쪽 끝 b <output id="bOut">1</output></label>
-        <input id="bIn" type="range" min="0.5" max="3" step="0.5" value="1"></div>
-      <div class="ctl"><label for="nIn">직사각형 개수 n <output id="nOut">8</output></label>
-        <input id="nIn" type="range" min="1" max="200" step="1" value="8">
-        <div class="seg" id="nChips">
-          <button class="chip" data-n="4">4</button><button class="chip" data-n="8">8</button><button class="chip" data-n="16">16</button><button class="chip" data-n="50">50</button><button class="chip" data-n="1000">1000</button>
-        </div></div>
-      <div class="ctl"><span class="lbl">보기</span>
-        <div class="seg" id="modeSeg">
-          <button data-mode="under" aria-pressed="false">과소</button>
-          <button data-mode="over" aria-pressed="false">과대</button>
-          <button data-mode="both" aria-pressed="true">둘 다</button>
-        </div></div>
-      <div class="ctl"><span class="lbl">장면</span>
-        <div class="seg">
-          <button id="gatherBtn" aria-pressed="false">차이 조각 모으기</button>
-          <button id="incBtn" aria-pressed="false">ΔS 조각 보기</button>
-        </div></div>
-      <dl class="readout">
-        <dt><span class="sw u"></span>과소 (왼쪽 끝)</dt><dd id="rLo">–</dd>
-        <dt><span class="sw o"></span>과대 (오른쪽 끝)</dt><dd id="rHi">–</dd>
-        <dt><span class="sw g"></span>차이</dt><dd id="rGap">–</dd>
-      </dl>
-      <p class="hint" id="gapHint">‘차이 조각 모으기’를 누르면 주황 조각들이 한 줄로 쌓입니다.</p>
+      <div class="ctl"><label for="b2">오른쪽 끝 b <output class="b2out">1</output></label>
+        <input id="b2" class="bIn2" type="range" min="0.5" max="3" step="0.5" value="1"></div>
+      <div class="seg"><button type="button" id="rec2">현재 b의 넓이 기록하기</button><button type="button" id="clr2">기록 지우기</button></div>
+    </div>
+    <div class="controls">
+      <div class="pts" id="pts2"></div>
+      <div class="ctl"><span class="lbl">S(x) 후보 식 겹쳐 보기</span><div class="seg" id="cand2"></div></div>
+      <p class="verdict" id="verdict2" aria-live="polite"></p>
+      <p class="hint">함수를 바꿔 가며 기록하고, 모든 점을 지나는 식을 찾아보세요. b = 1, 2는 예시로 찍혀 있습니다.</p>
     </div>
   </div>
-  <p class="ask"><span>발문</span>주황색 조각을 모두 오른쪽으로 밀어 쌓으면 어떤 모양이 될까? 그 넓이는 n이 커질 때 어떻게 될까?</p>
+  <div class="card" data-q="q4"></div>
+  <div class="card" data-q="cls"></div>
 </section>
 
-<section class="step" id="s2">
-  <div class="step-head"><span class="num">2</span><h2>조각을 늘려 좁혀 가기</h2></div>
-  <p>위에서 고른 함수와 b로 n을 크게 늘려 봅니다. 과소와 과대가 같은 수를 향해 다가가면, 그 수를 넓이라고 부를 수 있습니다.</p>
-  <div class="tablebox"><table>
-    <thead><tr><th>n</th><th>과소 (커짐 ↑)</th><th>과대 (작아짐 ↓)</th><th>차이 → 0</th><th>참값이 있을 수 있는 범위</th></tr></thead>
-    <tbody id="tbody"></tbody>
-  </table></div>
-  <p class="hint">과소는 곡선 아래에서 위로, 과대는 위에서 아래로 다가갑니다. 그래서 n이 커질수록 과소는 커지고 과대는 작아지며, 작아지는 것은 둘 사이의 차이입니다. 오른쪽 막대는 참값이 숨어 있을 수 있는 범위가 좁아지는 모습입니다.</p>
-  <p class="ask"><span>발문</span>y = x²이고 b = 1일 때 두 값은 어떤 분수로 다가가는 것 같니? b = 2, 3이면?</p>
-</section>
-
+<!-- 활동 3 -->
 <section class="step" id="s3">
-  <div class="step-head"><span class="num">3</span><h2>넓이를 b의 함수로 보기</h2></div>
-  <p>b를 바꿀 때마다 넓이가 하나씩 정해지니 넓이는 b의 함수 S(b)입니다. 위에서 b를 바꾸고 <b>기록하기</b>를 눌러 점을 찍은 뒤, 어떤 식이 그 점들을 모두 지나는지 후보를 골라 보세요.</p>
+  <div class="step-head"><span class="num">3</span><h2>높이 = 넓이가 늘어나는 속도</h2></div>
+  <p class="big-q">b를 Δx만큼 늘리면 넓이는 얇은 띠 하나만큼 늘어납니다. 이 띠를 점점 얇게 만들면 무슨 일이 생길까요?</p>
   <div class="two">
-    <div class="board"><canvas id="splot" aria-label="b에 따른 넓이 S(b)를 찍은 그래프"></canvas></div>
-    <div class="stack">
-      <div class="seg">
-        <button id="recBtn">현재 b의 넓이 기록하기</button>
-        <button id="clrBtn">기록 지우기</button>
-      </div>
-      <div class="pts" id="pts"></div>
-      <p class="hint">기록값은 n = 1000일 때 과소와 과대의 평균입니다. 처음 두 점(b = 1, 2)은 예시로 찍혀 있습니다.</p>
-      <div class="ctl"><span class="lbl">S(x) 후보 식 겹쳐 보기</span>
-        <div class="seg" id="candSeg"></div></div>
-      <p class="verdict" id="verdict" aria-live="polite"></p>
+    <div class="board"><span class="cap">늘어난 넓이 ΔS (분홍 띠)</span><canvas id="c3a" aria-label="b에서 b+Δx까지 늘어난 넓이 띠"></canvas></div>
+    <div class="board"><span class="cap">S의 그래프와 두 점을 잇는 직선</span><canvas id="c3b" aria-label="넓이 함수 S의 그래프와 할선"></canvas></div>
+  </div>
+  <div class="lab">
+    <div class="controls">
+      <div class="ctl"><span class="lbl">함수</span>
+        <div class="seg fnSeg2">
+          <button type="button" data-fn="sq" aria-pressed="true">y = x²</button>
+          <button type="button" data-fn="lin" aria-pressed="false">y = 2x</button>
+          <button type="button" data-fn="cu" aria-pressed="false">y = x³</button>
+        </div></div>
+      <div class="ctl"><label for="b3">b <output class="b2out">1</output></label>
+        <input id="b3" class="bIn2" type="range" min="0.5" max="3" step="0.5" value="1"></div>
+      <div class="ctl"><label for="dx3">띠의 폭 Δx <output id="dx3out">0.5</output></label>
+        <input id="dx3" type="range" min="0" max="3" step="0.01" value="0.3"></div>
+      <button type="button" id="tan3" aria-pressed="false">기울기가 f(b)인 직선도 그리기</button>
+    </div>
+    <div class="controls">
+      <dl class="readout" style="border-top:none;padding-top:0">
+        <dt><span class="sw i"></span>늘어난 넓이 ΔS</dt><dd id="r3S">–</dd>
+        <dt>ΔS ÷ Δx (직선의 기울기)</dt><dd id="r3Q">–</dd>
+        <dt><span class="sw g"></span>그 지점의 높이 f(b)</dt><dd id="r3F">–</dd>
+      </dl>
+      <div class="tablebox"><table style="min-width:0"><thead><tr><th>Δx</th><th>ΔS ÷ Δx</th></tr></thead><tbody id="t3"></tbody></table></div>
     </div>
   </div>
-</section>
-
-<section class="step" id="s4">
-  <div class="step-head"><span class="num">4</span><h2>왜 미분의 역과정이 될까</h2></div>
-  <p>b를 Δx만큼 늘리면 넓이는 가느다란 조각 하나만큼 늘어납니다. 그 조각은 높이 f(b), 폭 Δx인 직사각형과 거의 같습니다. 1단계의 <b>ΔS 조각 보기</b>와 아래 버튼으로 확인해 보세요.</p>
   <div class="chain">
-    <span>ΔS ≈ f(b)·Δx</span><span class="arr">→</span>
-    <span>ΔS / Δx ≈ f(b)</span><span class="arr">→</span>
-    <span>Δx → 0 이면</span><span class="arr">→</span>
-    <b>S′(b) = f(b)</b>
+    <span>ΔS ≈ f(b)·Δx</span><span class="arr">→</span><span>ΔS ÷ Δx ≈ f(b)</span><span class="arr">→</span><span>Δx → 0</span><span class="arr">→</span><b>S′(b) = f(b)</b>
   </div>
-  <div class="seg"><button id="tanBtn" aria-pressed="false">S(b) 그래프에 기울기 f(b)인 직선 긋기</button></div>
-  <p class="ask"><span>발문</span>기울기가 f(b)인 직선이 S의 그래프에 딱 접한다. 그렇다면 넓이 함수 S는 f의 무엇일까? (앞에서 배운 단어로 답해 보자.)</p>
+  <div class="card" data-q="match"></div>
+  <div class="card" data-q="q6"></div>
+  <div class="card" id="explain">
+    <span class="kind k-exp">설명</span>
+    <p class="qp">왜 S′(x) = f(x)일까요? 그림을 못 보는 친구에게 말로 설명하듯 써 보세요.</p>
+    <textarea id="exText" aria-label="설명 쓰기" placeholder="x를 조금 늘리면…"></textarea>
+    <span class="lbl hint">다 쓴 뒤 스스로 점검해 보세요.</span>
+    <ul class="checklist">
+      <li><label><input type="checkbox" class="exChk" data-i="0"> x를 Δx만큼 늘릴 때 늘어나는 넓이(얇은 띠)를 말했다.</label></li>
+      <li><label><input type="checkbox" class="exChk" data-i="1"> 그 띠가 높이 f(x), 폭 Δx인 직사각형과 거의 같다고 했다.</label></li>
+      <li><label><input type="checkbox" class="exChk" data-i="2"> Δx → 0일 때 ΔS ÷ Δx가 f(x)에 가까워진다고 연결했다.</label></li>
+    </ul>
+    <details id="exModel" class="deep"><summary>예시 답안 보기</summary>
+      <p style="margin-top:8px">x를 Δx만큼 늘리면 넓이는 x와 x + Δx 사이의 얇은 띠만큼 늘어난다. 이 띠는 높이가 거의 f(x)이고 폭이 Δx인 직사각형과 비슷하므로 ΔS ≈ f(x)·Δx, 곧 ΔS ÷ Δx ≈ f(x)이다. Δx를 0에 가깝게 할수록 띠는 직사각형에 더 가까워지므로 S′(x) = f(x)이다.</p>
+    </details>
+    <p class="qmsg" id="exMsg"></p>
+  </div>
 </section>
 
+<!-- 활동 4 -->
+<section class="step" id="s4">
+  <div class="step-head"><span class="num">4</span><h2>아래끝과 적분상수 C</h2></div>
+  <p class="big-q">넓이를 0이 아닌 곳에서부터 재기 시작하면 어떻게 될까요? 그리고 부정적분의 C는 정적분에서 어디로 갈까요?</p>
+  <div class="card" data-q="q7"></div>
+  <div class="gate" data-gate="g4a">
+    <div class="locked">위의 예측을 확정하면 실험이 열립니다.</div>
+    <div class="gated" hidden>
+      <div class="lab">
+        <div class="board"><span class="cap"><span style="color:var(--inc)">━ Sₐ(x) = ∫ₐˣ t² dt</span> &nbsp; <span style="color:var(--muted)">┅ S₀(x) = ∫₀ˣ t² dt</span></span><canvas id="c4a" aria-label="아래끝 a에 따른 넓이 함수 그래프"></canvas></div>
+        <div class="controls">
+          <div class="ctl"><label for="a4">아래끝 a <output id="a4out">0</output></label>
+            <input id="a4" type="range" min="-1" max="2" step="0.5" value="0"></div>
+          <dl class="readout">
+            <dt>모든 x에서 S₀(x) − Sₐ(x)</dt><dd id="r4D">–</dd>
+            <dt>x = 1.5에서 S₀의 기울기</dt><dd id="r4s0">–</dd>
+            <dt>x = 1.5에서 Sₐ의 기울기</dt><dd id="r4sa">–</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" data-q="q8"></div>
+  <div class="gate" data-gate="g4b">
+    <div class="locked">위의 예측을 확정하면 실험이 열립니다.</div>
+    <div class="gated" hidden>
+      <div class="lab">
+        <div class="board"><span class="cap"><span style="color:var(--inc)">━ F(x) = x³/3 + C</span> &nbsp; <span style="color:var(--muted)">┅ C = 0일 때</span></span><canvas id="c4b" aria-label="적분상수 C에 따른 부정적분 그래프"></canvas></div>
+        <div class="controls">
+          <div class="ctl"><label for="C4">적분상수 C <output id="C4out">0</output></label>
+            <input id="C4" type="range" min="-2" max="3" step="0.5" value="0"></div>
+          <dl class="readout">
+            <dt>F(1)</dt><dd id="r4F1">–</dd>
+            <dt>F(2)</dt><dd id="r4F2">–</dd>
+            <dt><span class="sw i"></span>F(2) − F(1)</dt><dd id="r4FD">–</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card" data-q="q9"></div>
+</section>
+
+<!-- 정리 -->
+<section class="step" id="s5">
+  <div class="step-head"><span class="num">5</span><h2>정리하기</h2></div>
+  <div class="card" id="predBack"></div>
+  <div class="card" data-q="e1"></div>
+  <div class="card" data-q="e2"></div>
+  <div class="card" data-q="e3a"></div>
+  <div class="card" data-q="e3b"></div>
+  <div class="card" id="summaryCard">
+    <span class="kind k-exp">오늘의 결과</span>
+    <p class="hint">이 화면을 캡처해 제출하세요. 답은 이 기기의 브라우저에만 저장됩니다.</p>
+    <div class="summary" id="summary"></div>
+    <div class="confirm" id="resetBox"><button type="button" id="resetBtn">모든 답 지우고 처음부터</button></div>
+  </div>
+</section>
+
+<!-- 도전 -->
+<section class="step" id="s6">
+  <div class="step-head"><h2>도전 · 넓이와 정적분은 다르다</h2></div>
+  <p>정적분은 x축 위 넓이에서 x축 아래 넓이를 <b>뺀</b> 값으로 정의합니다. 그래서 정적분과 넓이는 같지 않을 수 있어요.</p>
+  <div class="lab">
+    <div class="board"><span class="cap">y = x² − 1, 0부터 b까지</span><canvas id="c6" aria-label="x축 위와 아래로 나뉜 넓이"></canvas></div>
+    <div class="controls">
+      <div class="ctl"><label for="b6">b <output id="b6out">1.5</output></label>
+        <input id="b6" type="range" min="0" max="2.5" step="0.01" value="1.5"></div>
+      <dl class="readout">
+        <dt><span class="sw u"></span>x축 위 넓이</dt><dd id="r6P">–</dd>
+        <dt><span class="sw n"></span>x축 아래 넓이</dt><dd id="r6N">–</dd>
+        <dt>정적분 (위 − 아래)</dt><dd id="r6I">–</dd>
+        <dt>넓이의 합 (위 + 아래)</dt><dd id="r6A">–</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="card" data-q="hw"></div>
+</section>
+
+<!-- 진로 -->
 <section class="step" id="careers">
   <div class="step-head"><h2>잘게 나눠 더하기, 이 생각은 어디에 쓰일까</h2></div>
-  <p>오늘의 핵심은 두 가지입니다. 모르는 양을 <b>잘게 나눠 아는 모양으로 바꾼 뒤 더한다</b>는 생각과, <b>변화율을 쌓으면 누적량이 되고 누적량을 미분하면 변화율로 돌아온다</b>는 관계입니다. 그래프의 높이와 넓이가 무엇을 뜻하는지만 바뀔 뿐, 많은 직업이 같은 계산을 합니다.</p>
+  <p>오늘 배운 두 생각, <b>잘게 나눠 아는 모양으로 바꾼 뒤 더하기</b>와 <b>변화율을 쌓으면 누적량이 되고 누적량을 미분하면 변화율로 돌아온다</b>는 관계는 많은 직업에서 그대로 쓰입니다. 그래프의 높이와 넓이가 무엇을 뜻하는지만 달라집니다.</p>
   <div class="pairs">
     <div class="pair"><span class="r">높이</span><span class="a">속도</span><span class="r">넓이</span><span class="a">이동 거리</span></div>
     <div class="pair"><span class="r">높이</span><span class="a">전력 (kW)</span><span class="r">넓이</span><span class="a">전력량 (kWh)</span></div>
@@ -255,162 +475,460 @@ table{min-width:640px}
       <div class="majors">통계학 · 컴퓨터공학 · 데이터사이언스 · AI</div></article>
     <article class="job"><span class="field">게임 · 그래픽스</span><h3>화면 속 공은 어떻게 날아갈까</h3>
       <dl><dt>나누기</dt><dd>1/60초 한 프레임</dd><dt>더하기</dt><dd>속도 × 프레임 시간</dd></dl>
-      <p>물리엔진은 매 프레임 속도에 짧은 시간을 곱해 위치에 더합니다. 직사각형을 하나씩 쌓는 오늘의 과소합과 같은 계산입니다.</p>
+      <p>물리엔진은 매 프레임 속도에 짧은 시간을 곱해 위치에 더합니다. 직사각형을 하나씩 쌓던 1단계의 계산과 같습니다.</p>
       <div class="majors">소프트웨어 · 게임공학 · 디지털콘텐츠</div></article>
   </div>
-  <p class="ask"><span>진로 연계 과제</span>내 관심 분야에서 ‘그래프의 높이’와 ‘그래프 아래 넓이’가 각각 무엇을 뜻하는 상황을 하나 찾아, 어떻게 잘게 나누고 무엇을 더하는지 한 장으로 설명해 보자.</p>
 </section>
 
-<aside class="note">
-  <span class="tag">교사용 메모 · 2022 개정 교육과정 범위</span>
-  <ul>
-    <li>성취기준 [12미적Ⅰ-03-03]은 정적분의 개념을 <b>탐구</b>하도록 하고, 정적분은 그래프와 x축 사이의 <b>넓이</b>로 정의합니다. 이 활동은 그 넓이를 어떻게 구할지 직관적으로 탐구하는 데까지만 다룹니다.</li>
-    <li>구분구적법과 급수의 합을 이용한 정적분의 정의는 『미적분Ⅱ』 내용입니다(지도서 198쪽). 정적분을 lim Σ f(x<sub>k</sub>)Δx로 정의하거나 지필·수행평가에 출제하지 않습니다.</li>
-    <li>“n이 한없이 커지면”은 표와 그래프로 관찰하는 수준에서 다룹니다. 수열의 극한 계산은 하지 않습니다.</li>
-    <li>4단계의 ΔS ≈ f(b)Δx 논리는 교과서 125쪽 이후 넓이 함수 S(x)와 S′(x) = f(x) 설명으로 바로 이어집니다.</li>
-  </ul>
-</aside>
+<!-- 진로 과제 제출 -->
+<section class="step" id="s7">
+  <div class="step-head"><span class="num">과제</span><h2>내 진로 속 높이와 넓이</h2></div>
+  <p>내 관심 분야에서 ‘그래프의 높이’와 ‘그래프 아래 넓이’가 각각 무엇을 뜻하는 상황을 하나 찾아, 어떻게 잘게 나누고 무엇을 더하는지 한 장으로 정리해 제출하세요.</p>
+  <form class="card career" id="careerForm" novalidate>
+    <div class="fgrid">
+      <div class="fld"><label for="cf-sid">학번 <i>*</i></label><input type="text" id="cf-sid" name="sid" maxlength="10" autocomplete="off" placeholder="예: 20315"></div>
+      <div class="fld"><label for="cf-sname">이름 <i>*</i></label><input type="text" id="cf-sname" name="sname" maxlength="20" autocomplete="off"></div>
+      <div class="fld wide"><label for="cf-field">관심 분야 · 진로</label><input type="text" id="cf-field" name="field" maxlength="60" placeholder="예: 약학, 자율주행, 스포츠과학"></div>
+      <div class="fld wide"><label for="cf-title">어떤 상황인가요? <i>*</i></label><input type="text" id="cf-title" name="title" maxlength="120" placeholder="예: 진통제를 먹은 뒤 몸속 약의 양"></div>
+      <div class="fld"><label for="cf-xaxis">가로축 x (단위) <i>*</i></label><input type="text" id="cf-xaxis" name="xaxis" maxlength="80" placeholder="예: 시간 (h)"></div>
+      <div class="fld"><label for="cf-height">그래프의 높이 (단위) <i>*</i></label><input type="text" id="cf-height" name="height" maxlength="120" placeholder="예: 혈중 약물 농도 (mg/L)"></div>
+      <div class="fld wide"><label for="cf-area">그래프 아래 넓이가 뜻하는 것 (단위) <i>*</i></label><input type="text" id="cf-area" name="area" maxlength="160" placeholder="예: 몸이 받은 약물 노출량 (mg·h/L)"></div>
+      <p class="hint wide" id="cf-unit">높이의 단위 × 가로축의 단위가 넓이의 단위가 되는지 확인해 보세요.</p>
+      <div class="fld wide"><label for="cf-split">어떻게 잘게 나누나요? <i>*</i></label><textarea id="cf-split" name="split" maxlength="1000" placeholder="무엇을 기준으로, 어떤 폭으로 나누는지 써 보세요."></textarea></div>
+      <div class="fld wide"><label for="cf-sum">무엇을 곱해서 더하나요? <i>*</i></label><textarea id="cf-sum" name="sum" maxlength="1000" placeholder="조각 하나의 ‘높이 × 폭’이 실제로 무엇을 뜻하는지, 모두 더하면 무엇이 되는지 써 보세요."></textarea></div>
+      <div class="fld wide"><label for="cf-reverse">거꾸로 생각하기: 넓이(누적량)를 미분하면 무엇이 되나요?</label><textarea id="cf-reverse" name="reverse" maxlength="1000" placeholder="오늘 배운 S′(x) = f(x)를 내 상황에 적용해 보세요."></textarea></div>
+      <div class="fld wide"><label for="cf-img">그래프 그림 사진 (선택)</label><input type="file" id="cf-img" accept="image/*"><span class="hint" id="cf-imgmsg">손으로 그린 그래프를 찍어 올려도 됩니다. 큰 사진은 자동으로 줄여서 보냅니다.</span></div>
+      <label class="wide inl"><input type="checkbox" id="cf-results" checked> 오늘 활동 결과(첫 시도 정답 수, 다시 살펴볼 생각, 3단계 설명)도 함께 보내기</label>
+    </div>
+    <div class="qa"><button type="submit" class="primary" id="cf-send">제출하기</button><span class="qmsg" id="cf-msg" aria-live="polite"></span></div>
+  </form>
+</section>
 </div>
 
 <script>
 (function(){
-const $=s=>document.querySelector(s);
-const MONO='"JetBrains Mono", ui-monospace, Consolas, monospace';
-const BODY='"IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif';
-const FUNCS={
-  sq:{label:'y = x²',f:x=>x*x,F:x=>x*x*x/3},
-  lin:{label:'y = 2x',f:x=>2*x,F:x=>x*x},
-  cu:{label:'y = x³',f:x=>x*x*x,F:x=>x*x*x*x/4}
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s);};
+var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));};
+var MONO='"JetBrains Mono", ui-monospace, Consolas, monospace';
+var BODY='"IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif';
+var KEY='integral-lesson-v1';
+var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- 저장 ---------- */
+function fresh(){return {ans:{},pred0:null,text:'',checks:[false,false,false]};}
+var S=fresh();
+try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.ans){S=Object.assign(fresh(),p);}}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ---------- 수학 도구 ---------- */
+function simpson(f,a,b,N){N=N||200;if(a===b)return 0;var h=(b-a)/N,s=f(a)+f(b);for(var i=1;i<N;i++)s+=f(a+i*h)*(i%2?4:2);return s*h/3;}
+function sums(f,a,b,n){var dx=(b-a)/n,L=0,R=0;for(var k=0;k<n;k++){L+=f(a+k*dx);R+=f(a+(k+1)*dx);}return{L:L*dx,R:R*dx};}
+function fmt(v,d){if(d===undefined)d=4;if(Math.abs(v)<0.5*Math.pow(10,-d))v=0;return v.toFixed(d);}
+function trim(v){return String(+(+v).toFixed(3));}
+function parseNum(s){s=String(s||'').trim().replace(/\s/g,'').replace(/−/g,'-');
+  var m=s.match(/^(?:√|루트)(\d*\.?\d+)$/);if(m)return Math.sqrt(+m[1]);
+  if(/^[-+]?\d*\.?\d+\/[-+]?\d*\.?\d+$/.test(s)){var q=s.split('/');return (+q[0])/(+q[1]);}
+  if(/^[-+]?\d*\.?\d+$/.test(s))return +s;return NaN;}
+
+/* ---------- 그리기 도구 ---------- */
+function colors(){var s=getComputedStyle(document.documentElement);var g=function(n){return s.getPropertyValue(n).trim();};
+  return{ink:g('--ink'),muted:g('--muted'),grid:g('--grid'),line:g('--line'),under:g('--under'),over:g('--over'),inc:g('--inc'),cand:g('--cand'),neg:g('--neg'),panel:g('--panel')};}
+function niceStep(range,target){var raw=range/target,p=Math.pow(10,Math.floor(Math.log10(raw))),m=raw/p;return (m<1.5?1:m<3.5?2:m<7.5?5:10)*p;}
+function plot(c,o){
+  var w=c.clientWidth;if(!w)return null;
+  var h=Math.min(o.maxH||520,Math.max(o.minH||220,Math.round(w*(o.ratio||0.62))));
+  var dpr=window.devicePixelRatio||1;c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);c.style.height=h+'px';
+  var ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);
+  var sm=!!o.small,L=sm?8:46,R=w-(sm?8:12),T=sm?8:14,B=h-(sm?8:28);
+  var m={ctx:ctx,o:o,w:w,h:h,L:L,R:R,T:T,B:B,C:colors(),
+    X:function(x){return L+(x-o.xmin)/(o.xmax-o.xmin)*(R-L);},
+    Y:function(y){return B-(y-o.ymin)/(o.ymax-o.ymin)*(B-T);}};
+  axes(m);return m;}
+function axes(m){var ctx=m.ctx,o=m.o,C=m.C,sm=!!o.small;
+  var xs=niceStep(o.xmax-o.xmin,sm?4:6),ys=niceStep(o.ymax-o.ymin,sm?4:5),x,y,px,py;
+  ctx.lineWidth=1;ctx.font='11px '+MONO;
+  for(x=Math.ceil(o.xmin/xs-1e-9)*xs;x<=o.xmax+1e-9;x+=xs){px=Math.round(m.X(x))+.5;ctx.strokeStyle=C.grid;ctx.beginPath();ctx.moveTo(px,m.T);ctx.lineTo(px,m.B);ctx.stroke();
+    if(!sm){ctx.fillStyle=C.muted;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(trim(x),px,m.B+7);}}
+  for(y=Math.ceil(o.ymin/ys-1e-9)*ys;y<=o.ymax+1e-9;y+=ys){py=Math.round(m.Y(y))+.5;ctx.strokeStyle=C.grid;ctx.beginPath();ctx.moveTo(m.L,py);ctx.lineTo(m.R,py);ctx.stroke();
+    if(!sm){ctx.fillStyle=C.muted;ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(trim(y),m.L-7,py);}}
+  ctx.strokeStyle=C.ink;ctx.lineWidth=1.3;ctx.beginPath();
+  var y0=(o.ymin<=0&&o.ymax>=0)?m.Y(0):m.B, x0=(o.xmin<=0&&o.xmax>=0)?m.X(0):m.L;
+  ctx.moveTo(m.L,y0);ctx.lineTo(m.R,y0);ctx.moveTo(x0,m.T);ctx.lineTo(x0,m.B);ctx.stroke();}
+function clip(m){var c=m.ctx;c.save();c.beginPath();c.rect(m.L,m.T-2,m.R-m.L,m.B-m.T+4);c.clip();}
+function curve(m,g,x0,x1,color,width,dash){var c=m.ctx;c.save();c.strokeStyle=color;c.lineWidth=width||2.2;c.setLineDash(dash||[]);c.beginPath();
+  var N=240;for(var i=0;i<=N;i++){var x=x0+(x1-x0)*i/N,px=m.X(x),py=m.Y(g(x));if(i)c.lineTo(px,py);else c.moveTo(px,py);}c.stroke();c.restore();}
+function fillUnder(m,g,x0,x1,color,alpha){if(x1<=x0)return;var c=m.ctx;c.save();c.globalAlpha=alpha;c.fillStyle=color;c.beginPath();c.moveTo(m.X(x0),m.Y(0));
+  var N=160;for(var i=0;i<=N;i++){var x=x0+(x1-x0)*i/N;c.lineTo(m.X(x),m.Y(g(x)));}c.lineTo(m.X(x1),m.Y(0));c.closePath();c.fill();c.restore();}
+function vline(m,x,color){var c=m.ctx;c.save();c.strokeStyle=color;c.setLineDash([3,4]);c.lineWidth=1;c.beginPath();c.moveTo(m.X(x),m.T);c.lineTo(m.X(x),m.B);c.stroke();c.restore();}
+function dotAt(m,x,y,color,r){var c=m.ctx;c.fillStyle=color;c.beginPath();c.arc(m.X(x),m.Y(y),r||5,0,Math.PI*2);c.fill();}
+function seg(m,x0,y0,x1,y1,color,width,dash){var c=m.ctx;c.save();c.strokeStyle=color;c.lineWidth=width||2;c.setLineDash(dash||[]);c.beginPath();c.moveTo(m.X(x0),m.Y(y0));c.lineTo(m.X(x1),m.Y(y1));c.stroke();c.restore();}
+function text(m,str,x,y,color,align,base,font){var c=m.ctx;c.fillStyle=color;c.font=font||('600 13px '+BODY);c.textAlign=align||'left';c.textBaseline=base||'top';c.fillText(str,x,y);}
+var ease=function(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;};
+
+/* ---------- 문항 정의 ---------- */
+var Q={
+ q1:{kind:'predict',gate:'g1',prompt:'y = x²에서 n을 4에서 1000으로 늘리면, 왼쪽 끝 합과 오른쪽 끝 합은 각각 어떻게 될까요?',
+  opts:['둘 다 작아진다','왼쪽 끝 합은 커지고, 오른쪽 끝 합은 작아진다','왼쪽 끝 합은 작아지고, 오른쪽 끝 합은 커진다','둘 다 거의 변하지 않는다'],ans:1,
+  fb:['실제로는 왼쪽 끝 합이 커졌어요. 오차가 줄어드는 것과 값이 작아지는 것은 다릅니다. 곡선 아래에 있던 직사각형은 빈틈이 메워지면서 커집니다.',
+      '예측이 맞았어요. 곡선 아래의 직사각형은 빈틈이 메워져 커지고, 곡선 위로 삐져나온 직사각형은 튀어나온 부분이 깎여 작아집니다.',
+      '반대였어요. 표에서 왼쪽 끝 합은 커지고 오른쪽 끝 합은 작아집니다. 그림에서 어느 쪽 직사각형이 곡선 아래에 있는지 확인해 보세요.',
+      'n이 4일 때와 1000일 때 표의 값을 비교해 보세요. 두 합 모두 꽤 많이 움직입니다.']},
+ q2:{kind:'check',see:'#s1',prompt:'함수를 y = 1 − x²로 바꿔 보세요. 이때 왼쪽 끝 높이로 만든 합은 참값과 비교해 어떤가요?',
+  opts:['참값보다 작다 (과소)','참값보다 크다 (과대)','n에 따라 크기도 하고 작기도 하다'],ans:1,
+  fb:['그래프를 다시 보세요. 감소함수에서는 각 칸의 왼쪽 끝이 가장 높은 곳이라 직사각형이 곡선 위로 삐져나옵니다.',
+      '맞아요. 감소함수에서는 왼쪽 끝이 그 칸에서 가장 높아서 과대가 됩니다. 왼쪽인지 오른쪽인지보다, 그 칸에서 높은 쪽을 썼는지가 중요해요.',
+      'n을 바꿔 봐도 왼쪽 끝 합은 늘 참값보다 큽니다. 감소함수에서는 칸마다 왼쪽 끝이 가장 높기 때문이에요.']},
+ q3:{kind:'check',see:'#s1',prompt:'n이 커질 때 0에 가까워지는 것은 무엇일까요?',
+  opts:['왼쪽 끝 합','오른쪽 끝 합','두 합의 차이','곡선 아래 넓이의 참값'],ans:2,
+  fb:['왼쪽 끝 합은 0이 아니라 참값(y = x²이면 약 0.333)에 가까워집니다.','오른쪽 끝 합도 참값 쪽으로 다가갈 뿐 0이 되지는 않아요.',
+      '맞아요. 두 합의 차이가 0으로 줄어들어, 참값이 있을 수 있는 범위가 한 점으로 좁혀집니다.','참값은 처음부터 정해진 하나의 수라서 n에 따라 변하지 않습니다.']},
+ q4:{kind:'check',see:'#s2',prompt:'실험한 패턴을 일반화해 봅시다. f(x) = xⁿ이면 S(x) = ∫₀ˣ tⁿ dt는 무엇일까요?',
+  opts:['xⁿ⁺¹','xⁿ⁺¹ ÷ (n + 1)','n·xⁿ⁻¹','xⁿ ÷ n'],ans:1,
+  fb:['y = x²일 때 x³을 넣으면 b = 1에서 1이 되어, 실험값 0.333과 맞지 않아요.',
+      '맞아요. x² → x³/3, x³ → x⁴/4의 패턴입니다. 이 식을 미분하면 다시 xⁿ이 된다는 것도 확인해 보세요.',
+      '이것은 xⁿ을 미분한 식이에요. 넓이는 b가 커질수록 빠르게 커지므로 차수가 올라가야 합니다.',
+      'y = x²일 때 b = 1을 넣으면 1/2이 되어, 실험값 0.333과 맞지 않아요.']},
+ cls:{kind:'cls',see:'#s2',prompt:'세 식은 각각 무엇을 나타낼까요? 알맞은 것을 고르세요.',choices:['수 하나','함수 하나','함수 여러 개'],
+  items:[{tex:'∫₀² x² dx',ans:0,why:'위끝과 아래끝이 모두 수로 정해져 있어 값이 하나(8/3)로 정해집니다.'},
+         {tex:'∫₀ˣ t² dt',ans:1,why:'x에 따라 값이 하나씩 정해지는 함수 하나, 곧 넓이 함수 S(x) = x³/3입니다.'},
+         {tex:'∫ x² dx',ans:2,why:'부정적분은 x³/3 + C처럼 C에 따라 무수히 많은 함수를 한꺼번에 나타냅니다.'}]},
+ match:{kind:'check',see:'#s3',grid:true,prompt:'f(x) = 2 − x (0 ≤ x ≤ 2)의 그래프가 아래와 같을 때, S(x) = ∫₀ˣ f(t) dt의 그래프는 어느 것일까요?',
+  pre:'<div class="board mini-f"><span class="cap">y = f(x) = 2 − x</span><canvas id="mf" aria-label="f(x) = 2 − x 그래프"></canvas></div>',
+  opts:['<canvas id="m0" aria-hidden="true"></canvas>','<canvas id="m1" aria-hidden="true"></canvas>','<canvas id="m2" aria-hidden="true"></canvas>','<canvas id="m3" aria-hidden="true"></canvas>'],ans:2,
+  fb:['S는 f의 그래프를 옮겨 그린 것이 아니에요. f > 0인 동안에는 넓이가 계속 쌓이므로 S는 줄어들 수 없습니다.',
+      'f가 작아진다고 넓이가 줄어들지는 않아요. 0 ≤ x ≤ 2에서 f > 0이므로 S는 계속 증가합니다. 다만 늘어나는 속도가 느려집니다.',
+      '맞아요. f > 0이므로 S는 계속 증가하고, f가 점점 작아지므로 S의 기울기도 점점 작아집니다.',
+      'S가 증가하는 것은 맞지만 이 그래프는 점점 가팔라지고 있어요. S의 기울기는 f(x)인데 f는 점점 작아지므로 S는 점점 완만해져야 합니다.']},
+ q6:{kind:'check',see:'#s3',prompt:'d/dx ∫₂ˣ (t³ − t) dt 는 무엇일까요?',
+  opts:['x³ − x','t³ − t','(x³ − x) − (2³ − 2)','0'],ans:0,
+  fb:['맞아요. 아래끝 2는 움직이지 않으므로 x를 조금 늘릴 때 늘어나는 넓이는 x 쪽의 얇은 띠뿐이고, 그 띠의 높이가 x³ − x입니다.',
+      't는 적분하는 동안에만 쓰는 이름표예요. 결과는 x의 함수이므로 t가 남으면 안 됩니다.',
+      '아래끝 쪽은 움직이지 않으니 그쪽 넓이는 변하지 않아요. 변하지 않는 부분은 미분에 영향을 주지 않습니다.',
+      '∫₂ˣ는 수가 아니라 x에 따라 변하는 함수예요. ∫₂³처럼 위끝까지 수로 고정되어야 미분해서 0이 됩니다.']},
+ q7:{kind:'predict',gate:'g4a',prompt:'S(x) = ∫ₐˣ t² dt에서 아래끝 a를 0에서 1로 바꾸면, S의 그래프는 어떻게 될까요?',
+  opts:['위아래로만 평행이동한다','좌우로만 평행이동한다','모양과 기울기가 바뀐다'],ans:0,
+  fb:['예측이 맞았어요. 시작점만 바뀌므로 모든 x에서 같은 양(0부터 1까지의 넓이)만큼 줄어들 뿐, 각 점의 기울기 f(x)는 그대로입니다.',
+      '그래프는 좌우가 아니라 위아래로 움직였어요. 모든 x에서 0부터 1까지의 넓이만큼 똑같이 빠지기 때문입니다.',
+      '같은 x에서 두 그래프의 기울기를 비교해 보세요. 똑같이 f(x)입니다. 넓이가 늘어나는 속도는 그 지점의 높이로만 정해지니까요.']},
+ q8:{kind:'predict',gate:'g4b',prompt:'F(x) = x³/3 + C에서 C를 0에서 3으로 바꾸면, F(2) − F(1)은 어떻게 될까요?',
+  opts:['3만큼 커진다','변하지 않는다','6만큼 커진다'],ans:1,
+  fb:['F(2)와 F(1)이 둘 다 3씩 커지므로, 빼면 3이 사라집니다.',
+      '예측이 맞았어요. F(2)와 F(1)이 똑같이 C만큼 커지므로 둘을 빼면 C가 사라집니다. 그래서 어떤 부정적분을 써도 결과가 같아요.',
+      'F(2)와 F(1)에 각각 3이 더해지지만, 빼면 사라집니다.']},
+ q9:{kind:'check',see:'#s4',prompt:'f의 한 부정적분을 F라 할 때, ∫ₐᵇ f(x) dx는 무엇일까요?',
+  opts:['F(b) − F(a)','F(a) − F(b)','F(b) − F(a) + C','f(b) − f(a)'],ans:0,
+  fb:['맞아요. S(x) = ∫ₐˣ f(t) dt도 f의 부정적분이므로 S(x) = F(x) + C이고, S(a) = 0에서 C = −F(a)이므로 S(b) = F(b) − F(a)입니다.',
+      '순서가 반대예요. a에서 시작해 b까지 쌓인 넓이이므로, b에서의 값에서 a에서의 값을 뺍니다.',
+      'C는 빼는 과정에서 사라져요. C 슬라이더를 움직여도 F(2) − F(1)이 그대로였던 것을 떠올려 보세요.',
+      'f가 아니라 부정적분 F를 써야 해요. f(b) − f(a)는 두 지점의 높이 차이일 뿐 넓이가 아닙니다.']},
+ e1:{kind:'check',see:'#s3',prompt:'① d/dx ∫₋₁ˣ (2t + 5) dt 는 무엇일까요?',
+  opts:['2x + 5','2t + 5','(2x + 5) − 3','x² + 5x + 4'],ans:0,
+  fb:['맞아요. 위끝 x 쪽의 높이 2x + 5가 그대로 나옵니다.','결과는 x의 함수라서 t가 남으면 안 돼요.',
+      '아래끝 −1에서의 높이 f(−1) = 3을 뺄 필요가 없어요. 아래끝은 움직이지 않습니다.','이것은 적분한 결과 S(x)예요. 문제는 그것을 다시 미분한 결과를 묻고 있습니다.']},
+ e2:{kind:'num',see:'#s4',prompt:'② ∫₁³ 3x² dx 의 값을 구하세요.',ans:26,tol:1e-6,
+  ok:'맞아요. 3x²의 한 부정적분은 x³이므로 27 − 1 = 26입니다.',no:'3x²의 한 부정적분은 x³입니다. F(3) − F(1)을 계산해 보세요.'},
+ e3a:{kind:'num',see:'#s4',prompt:'③ 모든 실수 x에 대해 ∫₁ˣ f(t) dt = x² + ax − 3 일 때, 상수 a의 값을 구하세요.',ans:2,tol:1e-6,
+  ok:'맞아요. x = 1을 넣으면 왼쪽은 0이므로 1 + a − 3 = 0, a = 2입니다.',no:'x에 어떤 값을 넣으면 왼쪽이 확실히 0이 될까요?'},
+ e3b:{kind:'check',see:'#s4',prompt:'④ ③에서 x = 1을 대입한 이유로 가장 알맞은 것은?',
+  opts:['∫₁¹ f(t) dt = 0이기 때문','f(1) = 0이기 때문','양변을 미분하면 상수가 사라지기 때문'],ans:0,
+  fb:['맞아요. 아래끝과 위끝이 같으면 쌓인 넓이가 없으므로 0입니다.','f(1)의 값은 문제에서 알 수 없어요. 0이 되는 것은 f(1)이 아니라 1부터 1까지 쌓인 넓이입니다.',
+      '미분은 f(x)를 구할 때 쓰는 방법이에요. a를 구할 때는 넓이가 0이 되는 x = 1을 넣습니다.']},
+ hw:{kind:'num',prompt:'∫₀ᵇ (x² − 1) dx = 0이 되는 양수 b를 소수 둘째 자리까지 찾아보세요.',ans:Math.sqrt(3),tol:0.011,ph:'예: 1.50',
+  ok:'맞아요. b = √3 ≈ 1.73입니다. 이때 x축 위 넓이와 아래 넓이가 같아서 정적분은 0이지만, 넓이의 합은 0이 아니에요.',
+  no:'슬라이더로 b를 움직이며 정적분이 0이 되는 곳을 찾아보세요. 식으로는 b³/3 − b = 0을 풀면 됩니다.'}
 };
-const CANDS=[
-  {id:'a',label:'x²',g:x=>x*x},
-  {id:'b',label:'x²/2',g:x=>x*x/2},
-  {id:'c',label:'x³/3',g:x=>x*x*x/3},
-  {id:'d',label:'x³/2',g:x=>x*x*x/2},
-  {id:'e',label:'x⁴/4',g:x=>x*x*x*x/4}
+var LETTERS='ABCDE';
+var NAMES={q1:'1 예측: 두 합의 변화',q2:'1 감소함수의 왼쪽 끝 합',q3:'1 0으로 가는 것',q4:'2 패턴 일반화',cls:'2 수 · 함수 분류',
+  match:'3 f와 S의 그래프',q6:'3 ∫ₐˣ의 미분',q7:'4 예측: 아래끝',q8:'4 예측: 적분상수',q9:'4 정적분 계산 공식',
+  e1:'정리 ①',e2:'정리 ②',e3a:'정리 ③',e3b:'정리 ④'};
+var GRADED=['q1','q2','q3','q4','cls','match','q6','q7','q8','q9','e1','e2','e3a','e3b'];
+var MIS=[
+ {label:'n이 커지면 두 합이 모두 작아진다고 생각함',q:['q1','q3'],see:'#s1'},
+ {label:'왼쪽 끝으로 만든 합은 언제나 과소라고 생각함',q:['q2'],see:'#s1'},
+ {label:'정적분과 부정적분을 같은 종류로 생각함',q:['cls'],see:'#s2'},
+ {label:'S의 그래프가 f의 그래프 모양을 따라간다고 생각함',q:['match'],see:'#s3'},
+ {label:'∫ₐˣ f(t) dt를 미분할 때 t가 남거나 f(a)를 빼야 한다고 생각함',q:['q6','e1'],see:'#s3'},
+ {label:'아래끝이 바뀌면 기울기도 바뀐다고 생각함 / S(a) = 0을 활용하지 못함',q:['q7','e3b'],see:'#s4'},
+ {label:'적분상수 C가 정적분 값에 영향을 준다고 생각함',q:['q8','q9'],see:'#s4'}
 ];
-const st={fn:'sq',b:1,n:8,mode:'both',gather:false,inc:false,t:0,points:[],cand:null,tangent:false};
-const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var SEC=[['s0',['pred0']],['s1',['q1','q2','q3']],['s2',['q4','cls']],['s3',['match','q6','explain']],['s4',['q7','q8','q9']],['s5',['e1','e2','e3a','e3b']]];
 
-function colors(){const s=getComputedStyle(document.documentElement);const g=n=>s.getPropertyValue(n).trim();
-  return{ink:g('--ink'),muted:g('--muted'),grid:g('--grid'),line:g('--line'),under:g('--under'),over:g('--over'),inc:g('--inc'),cand:g('--cand'),panel:g('--panel')};}
-function sums(f,b,n){const dx=b/n;let lo=0,hi=0;for(let k=0;k<n;k++){lo+=f(k*dx);hi+=f((k+1)*dx);}return{lo:lo*dx,hi:hi*dx};}
-function measured(b){const s=sums(FUNCS[st.fn].f,b,1000);return (s.lo+s.hi)/2;}
-const fmt=(v,d)=>v.toFixed(d===undefined?4:d);
-const trim=v=>String(+v.toFixed(3));
-function setup(c,ratio,minH,maxH){const w=c.parentElement.clientWidth-20;const h=Math.min(maxH,Math.max(minH,Math.round(w*ratio)));const dpr=window.devicePixelRatio||1;
-  c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);c.style.height=h+'px';const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);return{ctx,w,h};}
-function niceStep(range,target){const raw=range/target;const p=Math.pow(10,Math.floor(Math.log10(raw)));const m=raw/p;return (m<1.5?1:m<3.5?2:m<7.5?5:10)*p;}
-function frame(w,h,xmax,ymax){const left=48,right=w-14,top=16,bot=h-30;
-  return{left,right,top,bot,X:x=>left+x/xmax*(right-left),Y:y=>bot-y/ymax*(bot-top)};}
-function axes(ctx,m,xmax,ymax,C){
-  const xs=niceStep(xmax,6),ys=niceStep(ymax,5);ctx.lineWidth=1;ctx.font='11px '+MONO;
-  for(let x=0;x<=xmax+1e-9;x+=xs){const px=Math.round(m.X(x))+.5;ctx.strokeStyle=C.grid;ctx.beginPath();ctx.moveTo(px,m.top);ctx.lineTo(px,m.bot);ctx.stroke();
-    ctx.fillStyle=C.muted;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(trim(x),px,m.bot+7);}
-  for(let y=0;y<=ymax+1e-9;y+=ys){const py=Math.round(m.Y(y))+.5;ctx.strokeStyle=C.grid;ctx.beginPath();ctx.moveTo(m.left,py);ctx.lineTo(m.right,py);ctx.stroke();
-    ctx.fillStyle=C.muted;ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(trim(y),m.left-7,py);}
-  ctx.strokeStyle=C.ink;ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(m.left,m.top);ctx.lineTo(m.left,m.bot);ctx.lineTo(m.right,m.bot);ctx.stroke();
-}
-function curve(ctx,m,g,x0,x1,color,width,dash){ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash||[]);ctx.beginPath();
-  const N=240;for(let i=0;i<=N;i++){const x=x0+(x1-x0)*i/N;const px=m.X(x),py=m.Y(g(x));i?ctx.lineTo(px,py):ctx.moveTo(px,py);}ctx.stroke();ctx.restore();}
-const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+function rec(id){return S.ans[id]||(S.ans[id]={});}
+function isDone(id){if(id==='pred0')return S.pred0!==null;if(id==='explain')return (S.text||'').trim().length>=15;var r=S.ans[id];return !!(r&&r.done);}
 
-const mainC=$('#main'),sC=$('#splot');
-function drawMain(){
-  const F=FUNCS[st.fn],f=F.f,b=st.b,n=st.n,dx=b/n,C=colors();
-  const {ctx,w,h}=setup(mainC,0.64,280,560);
-  const xmax=Math.max(1.2,b+Math.max(0.3*b,dx)),ymax=Math.max(f(b)*1.3,0.5);
-  const m=frame(w,h,xmax,ymax);axes(ctx,m,xmax,ymax,C);
-  ctx.save();ctx.beginPath();ctx.rect(m.left,m.top-2,m.right-m.left,m.bot-m.top+2);ctx.clip();
-  const edge=n<=60;
-  function rect(x0,x1,y0,y1,color,alpha){const px=m.X(x0),pw=m.X(x1)-px,py=m.Y(y1),ph=m.Y(y0)-py;
-    ctx.globalAlpha=alpha;ctx.fillStyle=color;ctx.fillRect(px,py,pw,ph);ctx.globalAlpha=1;
-    if(edge){ctx.strokeStyle=color;ctx.lineWidth=1;ctx.strokeRect(px,py,pw,ph);}}
-  if(st.mode==='under'){for(let k=0;k<n;k++)rect(k*dx,(k+1)*dx,0,f(k*dx),C.under,.3);}
-  else if(st.mode==='over'){for(let k=0;k<n;k++)rect(k*dx,(k+1)*dx,0,f((k+1)*dx),C.over,.3);}
-  else{const e=ease(st.t);
-    for(let k=0;k<n;k++)rect(k*dx,(k+1)*dx,0,f(k*dx),C.under,.3);
-    const label=n<=12;
-    if(st.t>0){ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle=C.over;ctx.lineWidth=1;
-      for(let k=0;k<n;k++){const px=m.X(k*dx),pw=m.X((k+1)*dx)-px,py=m.Y(f((k+1)*dx)),ph=m.Y(f(k*dx))-py;ctx.strokeRect(px,py,pw,ph);}ctx.restore();}
-    for(let k=0;k<n;k++){const s=(n-k)*dx*e;rect(k*dx+s,(k+1)*dx+s,f(k*dx),f((k+1)*dx),C.over,.6);
-      if(label){const cx=m.X(k*dx+s+dx/2),y0=m.Y(f(k*dx)),y1=m.Y(f((k+1)*dx));if(y0-y1>13){ctx.fillStyle=C.ink;ctx.font='600 11px '+MONO;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(k+1),cx,(y0+y1)/2);}}}
-    if(st.t>0.98){ctx.fillStyle=C.ink;ctx.font='600 12px '+BODY;ctx.textAlign='right';ctx.textBaseline='bottom';
-      ctx.fillText('높이 f(b) = '+trim(f(b))+', 폭 Δx = '+trim(dx),m.right-4,m.Y(f(b))-6);}}
-  if(st.inc){const x0=b,x1=b+Math.max(dx,0.04*b);ctx.globalAlpha=.55;ctx.fillStyle=C.inc;ctx.beginPath();ctx.moveTo(m.X(x0),m.Y(0));
-    for(let i=0;i<=30;i++){const x=x0+(x1-x0)*i/30;ctx.lineTo(m.X(x),m.Y(f(x)));}ctx.lineTo(m.X(x1),m.Y(0));ctx.closePath();ctx.fill();ctx.globalAlpha=1;
-    ctx.strokeStyle=C.inc;ctx.setLineDash([4,3]);ctx.lineWidth=1.5;ctx.strokeRect(m.X(x0),m.Y(f(b)),m.X(x1)-m.X(x0),m.Y(0)-m.Y(f(b)));ctx.setLineDash([]);
-    ctx.fillStyle=C.inc;ctx.font='600 12.5px '+BODY;ctx.textBaseline='bottom';const tx=m.X(x1)+6;ctx.textAlign=tx>m.right-120?'right':'left';
-    ctx.fillText('ΔS ≈ f(b)·Δx',ctx.textAlign==='right'?m.X(x0)-6:tx,m.Y(f(b))-4);}
-  curve(ctx,m,f,0,xmax,C.ink,2.4);
-  ctx.strokeStyle=C.muted;ctx.setLineDash([3,4]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(m.X(b),m.top);ctx.lineTo(m.X(b),m.bot);ctx.stroke();ctx.setLineDash([]);
-  ctx.restore();
-  ctx.fillStyle=C.ink;ctx.font='600 14px '+MONO;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(F.label,m.left+10,m.top+4);
-  ctx.fillStyle=C.muted;ctx.font='12px '+MONO;ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText('b',m.X(b),m.bot+19);
-  const s=sums(f,b,n);$('#rLo').textContent=fmt(s.lo);$('#rHi').textContent=fmt(s.hi);$('#rGap').textContent=fmt(s.hi-s.lo);
-  let hint;
-  if(st.mode!=='both')hint='참값은 과소와 과대 사이에 있습니다. ‘둘 다’로 비교해 보세요.';
-  else if(!st.gather)hint='주황 조각 k번은 높이가 f(오른쪽 끝) − f(왼쪽 끝)인 띠입니다. ‘차이 조각 모으기’를 눌러 보세요.';
-  else{const pts=[];for(let k=0;k<=Math.min(n,4);k++)pts.push(trim(f(k*dx)));
-    hint='조각 1은 높이 '+pts[0]+'~'+pts[1]+(n>1?', 조각 2는 '+pts[1]+'~'+pts[2]:'')+(n>2?' …':'')+'. 앞 조각이 끝난 높이에서 다음 조각이 시작하니, 옆으로 밀면 빈틈없이 이어져 0부터 f(b)까지 한 기둥이 됩니다. 차이 = f(b) × Δx = '+trim(f(b))+' × '+trim(dx)+' = '+fmt(f(b)*dx)+'.';}
-  $('#gapHint').textContent=hint;
-}
-function renderTable(){const f=FUNCS[st.fn].f;const base=sums(f,st.b,4),A=base.lo,B=base.hi,pc=v=>((v-A)/(B-A)*100).toFixed(2)+'%';
-  const rows=[4,8,16,100,1000,10000].map(n=>{const s=sums(f,st.b,n);
-  return '<tr><td>'+n+'</td><td class="u">'+fmt(s.lo,5)+'</td><td class="o">'+fmt(s.hi,5)+'</td><td>'+fmt(s.hi-s.lo,5)+'</td>'+
-    '<td class="barcell"><div class="track"><div class="span" style="left:'+pc(s.lo)+';width:calc('+pc(s.hi)+' - '+pc(s.lo)+')"></div><i class="lo" style="left:'+pc(s.lo)+'"></i><i class="hi" style="left:'+pc(s.hi)+'"></i></div></td></tr>';});
-  $('#tbody').innerHTML=rows.join('');}
-function drawS(){
-  const F=FUNCS[st.fn],C=colors();const {ctx,w,h}=setup(sC,0.72,280,480);
-  const xmax=3.2,ymax=Math.max(F.F(3.2)*1.08,1);const m=frame(w,h,xmax,ymax);axes(ctx,m,xmax,ymax,C);
-  ctx.save();ctx.beginPath();ctx.rect(m.left,m.top-2,m.right-m.left,m.bot-m.top+2);ctx.clip();
-  const cand=CANDS.find(c=>c.id===st.cand);if(cand)curve(ctx,m,cand.g,0,xmax,C.cand,2.2,[7,5]);
-  ctx.strokeStyle=C.muted;ctx.setLineDash([3,4]);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(m.X(st.b),m.top);ctx.lineTo(m.X(st.b),m.bot);ctx.stroke();ctx.setLineDash([]);
-  if(st.tangent){const b=st.b,v=measured(b),k=F.f(b),d=0.75;ctx.strokeStyle=C.inc;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(m.X(b-d),m.Y(v-k*d));ctx.lineTo(m.X(b+d),m.Y(v+k*d));ctx.stroke();
-    ctx.fillStyle=C.inc;ctx.beginPath();ctx.arc(m.X(b),m.Y(v),5,0,Math.PI*2);ctx.fill();
-    ctx.font='600 12.5px '+BODY;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('기울기 f(b) = '+trim(k),m.left+10,m.top+26);}
-  for(const p of st.points){ctx.fillStyle=C.ink;ctx.beginPath();ctx.arc(m.X(p.b),m.Y(p.v),5,0,Math.PI*2);ctx.fill();}
-  ctx.restore();
-  ctx.fillStyle=C.ink;ctx.font='600 14px '+MONO;ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('S(b) = 0부터 b까지의 넓이',m.left+10,m.top+4);
-  if(!st.points.length){ctx.fillStyle=C.muted;ctx.font='13px '+BODY;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('b를 바꾸고 ‘기록하기’를 눌러 점을 찍으세요',(m.left+m.right)/2,(m.top+m.bot)/2);}
-  $('#pts').innerHTML=st.points.map(p=>'<span class="pt">b = '+trim(p.b)+' → '+fmt(p.v)+'</span>').join('');
-  const vd=$('#verdict');
+/* ---------- 선다형 ---------- */
+function buildMCQ(id){var d=Q[id],el=$('[data-q="'+id+'"]');if(!el)return;var isP=d.kind==='predict';
+  el.innerHTML='<span class="kind '+(isP?'k-pred">예측':'k-check">확인')+'</span><p class="qp">'+d.prompt+'</p>'+(d.pre||'')+
+    '<div class="opts'+(d.grid?' grid4':'')+'" role="group">'+d.opts.map(function(o,i){return '<button type="button" class="opt" data-i="'+i+'" aria-pressed="false"><span class="ol">'+LETTERS[i]+'</span><span class="ot">'+o+'</span></button>';}).join('')+'</div>'+
+    '<div class="qa"><button type="button" class="primary sub">'+(isP?'예측 확정':'확인')+'</button><span class="qmsg"></span></div><div class="fb" aria-live="polite"></div>';
+  el.addEventListener('click',function(e){var r=rec(id),op=e.target.closest('.opt');
+    if(op){if(r.done)return;r.sel=+op.dataset.i;$('.qmsg',el).textContent='';save();paintMCQ(id,false);return;}
+    if(e.target.closest('.sub')){if(r.done)return;if(r.sel===undefined){$('.qmsg',el).textContent='먼저 하나를 고르세요.';return;}
+      if(r.first===undefined){r.first=r.sel;r.firstOk=r.sel===d.ans;}
+      r.last=r.sel;if(isP||r.sel===d.ans)r.done=true;save();paintMCQ(id,true);afterAnswer(id);}});
+  paintMCQ(id,true);}
+function paintMCQ(id,withFb){var d=Q[id],el=$('[data-q="'+id+'"]'),r=S.ans[id]||{},isP=d.kind==='predict';
+  $$('.opt',el).forEach(function(b,i){b.setAttribute('aria-pressed',String(r.sel===i));b.disabled=!!r.done;
+    b.classList.toggle('ok',!isP&&r.last===i&&i===d.ans);b.classList.toggle('no',!isP&&r.last===i&&i!==d.ans);});
+  var sub=$('.sub',el);sub.disabled=!!r.done;sub.textContent=r.done?(isP?'확정됨':'완료'):(isP?'예측 확정':'확인');
+  if(!withFb)return;var fb=$('.fb',el);
+  if(isP){fb.innerHTML=r.done?'<p class="neutral">내 예측: <b>'+LETTERS[r.first]+'</b>. 아래에서 직접 확인해 보세요.</p><details><summary>실험한 뒤에 열어 보기 · 내 예측 돌아보기</summary><p class="'+(r.firstOk?'ok':'no')+'">'+d.fb[r.first]+'</p></details>':'';}
+  else if(r.last!==undefined){var ok=r.last===d.ans;fb.innerHTML='<p class="'+(ok?'ok':'no')+'"><b>'+(ok?'정답':'다시 생각해 보기')+'</b> · '+d.fb[r.last]+(!ok&&d.see?' <a href="'+d.see+'">다시 볼 곳</a>':'')+'</p>';}
+  else fb.innerHTML='';
+  if(id==='match')drawMatch();}
+
+/* ---------- 수 입력 ---------- */
+function buildNum(id){var d=Q[id],el=$('[data-q="'+id+'"]');if(!el)return;
+  el.innerHTML='<span class="kind k-check">확인</span><p class="qp">'+d.prompt+'</p><div class="qa"><input type="text" inputmode="decimal" id="in-'+id+'" aria-label="답 입력" placeholder="'+(d.ph||'예: 7/3 또는 2.5')+'"><button type="button" class="primary sub">확인</button></div><div class="fb" aria-live="polite"></div>';
+  var inp=$('input',el),r=S.ans[id]||{};if(r.val!==undefined)inp.value=r.val;
+  function submit(){var r=rec(id);if(r.done)return;var v=parseNum(inp.value),fb=$('.fb',el);
+    if(isNaN(v)){fb.innerHTML='<p class="no">숫자로 입력해 주세요. 분수는 7/3처럼, 소수는 1.5처럼 씁니다.</p>';return;}
+    var ok=Math.abs(v-d.ans)<=d.tol;if(r.first===undefined){r.first=inp.value;r.firstOk=ok;}r.val=inp.value;r.lastOk=ok;if(ok)r.done=true;save();paintNum(id);afterAnswer(id);}
+  $('.sub',el).addEventListener('click',submit);inp.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
+  paintNum(id);}
+function paintNum(id){var d=Q[id],el=$('[data-q="'+id+'"]'),r=S.ans[id]||{};var inp=$('input',el),sub=$('.sub',el),fb=$('.fb',el);
+  inp.disabled=!!r.done;sub.disabled=!!r.done;sub.textContent=r.done?'완료':'확인';
+  if(r.lastOk===undefined){fb.innerHTML='';return;}
+  fb.innerHTML='<p class="'+(r.lastOk?'ok':'no')+'"><b>'+(r.lastOk?'정답':'다시 생각해 보기')+'</b> · '+(r.lastOk?d.ok:d.no)+(!r.lastOk&&d.see?' <a href="'+d.see+'">다시 볼 곳</a>':'')+'</p>';}
+
+/* ---------- 분류 ---------- */
+function buildCls(id){var d=Q[id],el=$('[data-q="'+id+'"]');if(!el)return;
+  el.innerHTML='<span class="kind k-check">확인</span><p class="qp">'+d.prompt+'</p>'+d.items.map(function(it,k){return '<div class="cls-row"><span class="tex">'+it.tex+'</span><div class="seg" data-k="'+k+'">'+d.choices.map(function(c,i){return '<button type="button" data-i="'+i+'" aria-pressed="false">'+c+'</button>';}).join('')+'</div></div>';}).join('')+
+    '<div class="qa"><button type="button" class="primary sub">확인</button><span class="qmsg"></span></div><div class="fb" aria-live="polite"></div>';
+  el.addEventListener('click',function(e){var r=rec(id);if(!r.sel)r.sel=[null,null,null];
+    var b=e.target.closest('.seg button');if(b){if(r.done)return;r.sel[+b.parentNode.dataset.k]=+b.dataset.i;save();paintCls(id,false);return;}
+    if(e.target.closest('.sub')){if(r.done)return;if(r.sel.indexOf(null)>=0){$('.qmsg',el).textContent='세 식 모두 골라 주세요.';return;}
+      $('.qmsg',el).textContent='';var ok=d.items.every(function(it,k){return r.sel[k]===it.ans;});
+      if(r.first===undefined){r.first=r.sel.slice();r.firstOk=ok;}r.last=r.sel.slice();if(ok)r.done=true;save();paintCls(id,true);afterAnswer(id);}});
+  paintCls(id,true);}
+function paintCls(id,withFb){var d=Q[id],el=$('[data-q="'+id+'"]'),r=S.ans[id]||{},sel=r.sel||[null,null,null];
+  $$('.seg',el).forEach(function(sg,k){$$('button',sg).forEach(function(b,i){b.setAttribute('aria-pressed',String(sel[k]===i));b.disabled=!!r.done;});});
+  var sub=$('.sub',el);sub.disabled=!!r.done;sub.textContent=r.done?'완료':'확인';
+  if(!withFb||!r.last)return;
+  $('.fb',el).innerHTML=d.items.map(function(it,k){var ok=r.last[k]===it.ans;return '<p class="'+(ok?'ok':'no')+'"><b>'+it.tex+'</b> · '+(ok?'맞아요. ':'다시 생각해 보기. ')+(ok||r.done?it.why:(k===2?'∫ 위아래에 아무 수도 없는 식이에요. 결과에 무엇이 붙었는지 떠올려 보세요.':k===1?'위끝이 x라서 x가 바뀌면 값도 바뀝니다.':'위끝과 아래끝이 모두 수예요.'))+'</p>';}).join('');}
+
+/* ---------- 도입 예측 ---------- */
+function paintPred0(){var inp=$('#pred0in'),btn=$('#pred0btn'),msg=$('#pred0msg');
+  if(S.pred0!==null){inp.value=S.pred0;inp.disabled=true;btn.disabled=true;btn.textContent='확정됨';msg.textContent='정리하기에서 실제 값과 비교합니다.';}
+  var pb=$('#predBack');
+  pb.innerHTML='<span class="kind k-pred">예측 돌아보기</span>'+(S.pred0===null?'<p>처음 예측을 아직 하지 않았어요. <a href="#s0">시작</a>에서 예측해 보세요.</p>':
+    '<p>처음 예측: <b class="mono">'+S.pred0+'</b> &nbsp; 실제 넓이: <b class="mono">1/3 ≈ 0.3333</b></p><p class="hint">'+(function(){var v=parseNum(S.pred0);if(isNaN(v))return '';var e=Math.abs(v-1/3);return e<0.02?'아주 가까웠어요. 어떻게 어림했는지 설명할 수 있나요?':(v>1/3?'실제보다 크게 어림했어요. 곡선이 처음에 얼마나 낮게 지나가는지 떠올려 보세요.':'실제보다 작게 어림했어요. 끝부분(x가 1에 가까운 곳)이 생각보다 높다는 점을 떠올려 보세요.');})()+'</p>');}
+$('#pred0btn').addEventListener('click',function(){var v=parseNum($('#pred0in').value);
+  if(isNaN(v)){$('#pred0msg').textContent='숫자로 입력해 주세요.';return;}
+  if(v<=0||v>=1){$('#pred0msg').textContent='넓이는 한 변이 1인 정사각형 안에 있으니 0과 1 사이의 값이에요.';return;}
+  S.pred0=$('#pred0in').value.trim();save();paintPred0();afterAnswer('pred0');});
+$('#pred0in').addEventListener('keydown',function(e){if(e.key==='Enter')$('#pred0btn').click();});
+
+/* ---------- 설명 쓰기 ---------- */
+(function(){var ta=$('#exText');ta.value=S.text||'';var tm=0;
+  ta.addEventListener('input',function(){clearTimeout(tm);tm=setTimeout(function(){S.text=ta.value;save();updateProgress();renderSummary();},300);});
+  $$('.exChk').forEach(function(c){c.checked=!!S.checks[+c.dataset.i];c.addEventListener('change',function(){S.checks[+c.dataset.i]=c.checked;save();renderSummary();});});
+  var det=$('#exModel');det.addEventListener('toggle',function(){if(det.open&&ta.value.trim().length<15){det.open=false;$('#exMsg').textContent='먼저 내 말로 한두 문장 써 본 뒤에 열어 보세요.';}else $('#exMsg').textContent='';});})();
+
+/* ---------- 잠금 ---------- */
+function unlock(g){$$('[data-gate="'+g+'"]').forEach(function(w){$('.locked',w).hidden=true;$('.gated',w).hidden=false;});requestAnimationFrame(drawAll);}
+function afterAnswer(id){var d=Q[id];if(d&&d.gate&&isDone(id))unlock(d.gate);updateProgress();renderSummary();}
+function updateProgress(){SEC.forEach(function(s){var n=s[1].filter(isDone).length,dot=$('.dot[data-sec="'+s[0]+'"]');if(!dot)return;
+  dot.classList.toggle('full',n===s[1].length);dot.classList.toggle('part',n>0&&n<s[1].length);});}
+
+/* ---------- 요약 ---------- */
+function renderSummary(){var box=$('#summary');var answered=GRADED.filter(function(id){return S.ans[id]&&S.ans[id].first!==undefined;});
+  var right=answered.filter(function(id){return S.ans[id].firstOk;}).length;
+  var rows=GRADED.map(function(id){var r=S.ans[id];var st=!r||r.first===undefined?'<span class="r na">–</span>':(r.firstOk?'<span class="r ok">○ 첫 시도</span>':(r.done?'<span class="r no">△ 다시 풀어 해결</span>':'<span class="r no">× 진행 중</span>'));
+    return '<li>'+NAMES[id]+'</li><li>'+st+'</li>';}).join('');
+  var flags=MIS.filter(function(m){return m.q.some(function(id){var r=S.ans[id];return r&&r.first!==undefined&&!r.firstOk;});});
+  var ex=(S.text||'').trim(),nck=S.checks.filter(Boolean).length;
+  box.innerHTML='<div class="stack" style="display:flex;flex-direction:column;gap:12px">'+
+    '<div><span class="hint">첫 시도에 맞힌 문항</span><div class="score">'+right+' / '+answered.length+'</div><span class="hint">전체 '+GRADED.length+'문항 중 '+answered.length+'문항 답함</span></div>'+
+    '<ul class="res">'+rows+'</ul></div>'+
+    '<div style="display:flex;flex-direction:column;gap:14px;min-width:0"><div><h3 style="font-size:15px;margin-bottom:6px">다시 살펴볼 생각</h3>'+
+    (answered.length===0?'<p class="hint">아직 답한 문항이 없어요.</p>':flags.length?'<ol class="flags">'+flags.map(function(f){return '<li>'+f.label+' <a href="'+f.see+'">다시 보기</a></li>';}).join('')+'</ol>':'<p class="hint">첫 시도에서 드러난 오개념이 없어요.</p>')+
+    '</div><div><h3 style="font-size:15px;margin-bottom:6px">내 설명 (자기 점검 '+nck+' / 3)</h3>'+(ex?'<p class="quote"></p>':'<p class="hint">3단계에서 설명을 아직 쓰지 않았어요.</p>')+'</div></div>';
+  if(ex)$('.quote',box).textContent=ex;}
+(function(){var rb=$('#resetBox');
+  rb.addEventListener('click',function(e){
+    if(e.target.id==='resetBtn'){rb.innerHTML='<span>모든 답을 지울까요? 되돌릴 수 없어요.</span><button type="button" class="primary" id="resetYes">지우기</button><button type="button" id="resetNo">취소</button>';}
+    else if(e.target.id==='resetNo'){rb.innerHTML='<button type="button" id="resetBtn">모든 답 지우고 처음부터</button>';}
+    else if(e.target.id==='resetYes'){S=fresh();save();try{location.reload();}catch(err){}}});})();
+
+/* ---------- 활동 1 ---------- */
+var F1={inc:{label:'y = x²',f:function(x){return x*x;}},dec:{label:'y = 1 − x²',f:function(x){return 1-x*x;}}};
+var L1={fn:'inc',n:8,mode:'both',gather:false,t:0};
+function drawLab1(){var c=$('#c1');var f=F1[L1.fn].f,n=L1.n,dx=1/n;
+  var m=plot(c,{xmin:0,xmax:1+Math.max(0.15,dx),ymin:0,ymax:1.25,ratio:0.64,minH:260,maxH:540});
+  if(m){var C=m.C,ctx=m.ctx,e=ease(L1.t),edge=n<=60;clip(m);
+    var rect=function(x0,x1,y0,y1,col,a,stroke){var px=m.X(x0),pw=m.X(x1)-px,py=m.Y(Math.max(y0,y1)),ph=m.Y(Math.min(y0,y1))-py;
+      ctx.globalAlpha=a;ctx.fillStyle=col;ctx.fillRect(px,py,pw,ph);ctx.globalAlpha=1;if(edge&&stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.strokeRect(px,py,pw,ph);}};
+    for(var k=0;k<n;k++){var x0=k*dx,x1=x0+dx,yl=f(x0),yr=f(x1),lo=Math.min(yl,yr),hi=Math.max(yl,yr);
+      if(L1.mode==='left')rect(x0,x1,0,yl,C.under,.3,C.under);
+      else if(L1.mode==='right')rect(x0,x1,0,yr,C.over,.3,C.over);
+      else{rect(x0,x1,0,lo,C.under,.2,null);rect(x0,x1,0,lo,C.over,.2,null);
+        if(e===0&&edge){ctx.strokeStyle=C.under;ctx.lineWidth=1;ctx.strokeRect(m.X(x0),m.Y(yl),m.X(x1)-m.X(x0),m.Y(0)-m.Y(yl));
+          ctx.strokeStyle=C.over;ctx.strokeRect(m.X(x0),m.Y(yr),m.X(x1)-m.X(x0),m.Y(0)-m.Y(yr));}
+        if(e>0&&edge){ctx.save();ctx.setLineDash([3,3]);ctx.strokeStyle=C.muted;ctx.strokeRect(m.X(x0),m.Y(hi),m.X(x1)-m.X(x0),m.Y(lo)-m.Y(hi));ctx.restore();}
+        var s=(n-k)*dx*e,col=yl>yr?C.under:C.over;rect(x0+s,x1+s,lo,hi,col,.55,col);
+        if(n<=12&&e>0.98&&m.Y(lo)-m.Y(hi)>13)text(m,String(k+1),m.X(x0+s+dx/2),(m.Y(lo)+m.Y(hi))/2,C.ink,'center','middle','600 11px '+MONO);}}
+    curve(m,f,0,m.o.xmax,C.ink,2.4);ctx.restore();
+    text(m,F1[L1.fn].label,(m.L+m.R)/2,m.T+4,C.ink,'center','top','600 14px '+MONO);
+    if(L1.gather&&L1.t>0.98)text(m,'높이 '+trim(Math.abs(f(1)-f(0)))+', 폭 '+trim(dx),m.R-4,m.T+24,C.ink,'right','top');}
+  var s=sums(f,0,1,n);$('#r1L').textContent=fmt(s.L);$('#r1R').textContent=fmt(s.R);$('#r1D').textContent=fmt(Math.abs(s.R-s.L));
+  var hint;if(!L1.gather)hint='두 합의 차이는 칸마다 생기는 띠(겹치지 않는 부분)를 모두 더한 것입니다. 버튼을 눌러 띠들을 오른쪽으로 모아 보세요.';
+  else hint='각 띠는 앞 띠가 끝난 높이에서 시작하므로, 옆으로 밀면 빈틈없이 이어져 높이 |f(1) − f(0)| = '+trim(Math.abs(f(1)-f(0)))+', 폭 Δx인 기둥 하나가 됩니다. 차이 = '+trim(Math.abs(f(1)-f(0)))+' × '+trim(dx)+' = '+fmt(Math.abs(f(1)-f(0))*dx)+'. n이 커지면 Δx → 0이므로 차이도 0으로 갑니다.';
+  $('#deep1hint').textContent=hint;}
+function renderT1(){var f=F1[L1.fn].f,b=sums(f,0,1,4),A=Math.min(b.L,b.R),B=Math.max(b.L,b.R);var pc=function(v){return ((v-A)/(B-A)*100).toFixed(2)+'%';};
+  $('#t1').innerHTML=[4,8,16,100,1000].map(function(n){var s=sums(f,0,1,n),lo=Math.min(s.L,s.R),hi=Math.max(s.L,s.R);
+    return '<tr><td>'+n+'</td><td class="u">'+fmt(s.L,5)+'</td><td class="o">'+fmt(s.R,5)+'</td><td>'+fmt(hi-lo,5)+'</td><td class="barcell"><div class="track"><div class="span" style="left:'+pc(lo)+';width:calc('+pc(hi)+' - '+pc(lo)+')"></div><i class="lo" style="left:'+pc(s.L)+'"></i><i class="hi" style="left:'+pc(s.R)+'"></i></div></td></tr>';}).join('');}
+var raf1=0;
+function animate1(target){cancelAnimationFrame(raf1);if(reduce){L1.t=target;drawLab1();return;}
+  var from=L1.t,t0=performance.now();var step=function(now){var k=Math.min(1,(now-t0)/750);L1.t=from+(target-from)*k;drawLab1();if(k<1)raf1=requestAnimationFrame(step);};raf1=requestAnimationFrame(step);}
+function pressIn(sel,attr,val){$$(sel+' button').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset[attr]===val));});}
+$('#fn1').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;L1.fn=b.dataset.fn;pressIn('#fn1','fn',L1.fn);drawLab1();renderT1();});
+function setN1(n){L1.n=n;$('#n1').value=Math.min(n,200);$('#n1out').textContent=n;drawLab1();}
+$('#n1').addEventListener('input',function(e){setN1(+e.target.value);});
+$('#n1chips').addEventListener('click',function(e){var b=e.target.closest('button');if(b)setN1(+b.dataset.n);});
+$('#mode1').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;L1.mode=b.dataset.mode;pressIn('#mode1','mode',L1.mode);
+  if(L1.mode!=='both'&&L1.gather){L1.gather=false;L1.t=0;$('#gather1').setAttribute('aria-pressed','false');}drawLab1();});
+$('#gather1').addEventListener('click',function(){L1.gather=!L1.gather;$('#gather1').setAttribute('aria-pressed',String(L1.gather));
+  if(L1.gather){L1.mode='both';pressIn('#mode1','mode','both');}animate1(L1.gather?1:0);});
+$('#deep1').addEventListener('toggle',function(){if(!$('#deep1').open&&L1.gather){L1.gather=false;$('#gather1').setAttribute('aria-pressed','false');animate1(0);}});
+
+/* ---------- 활동 2 · 3 ---------- */
+var F2={sq:{label:'y = x²',f:function(x){return x*x;}},lin:{label:'y = 2x',f:function(x){return 2*x;}},cu:{label:'y = x³',f:function(x){return x*x*x;}}};
+var CANDS=[{id:'a',label:'x²',g:function(x){return x*x;}},{id:'b',label:'x²/2',g:function(x){return x*x/2;}},{id:'c',label:'x³/3',g:function(x){return x*x*x/3;}},
+  {id:'d',label:'x³/2',g:function(x){return x*x*x/2;}},{id:'e',label:'x⁴/4',g:function(x){return x*x*x*x/4;}}];
+var L2={fn:'sq',b:1,points:[],cand:null};var L3={v:0.3,tan:false};
+function f2(){return F2[L2.fn].f;}
+function Sx(x){return simpson(f2(),0,x);}
+function resetPts(){L2.points=[1,2].map(function(b){return{b:b,v:Sx(b)};});}
+function drawLab2(){var f=f2(),b=L2.b,C;
+  var m=plot($('#c2a'),{xmin:0,xmax:3.2,ymin:0,ymax:f(3.2)*1.04,ratio:0.72,minH:240,maxH:440});
+  if(m){C=m.C;clip(m);fillUnder(m,f,0,b,C.under,.35);curve(m,f,0,3.2,C.ink,2.4);vline(m,b,C.muted);m.ctx.restore();
+    text(m,F2[L2.fn].label,m.L+10,m.T+4,C.ink,'left','top','600 14px '+MONO);
+    text(m,'S('+trim(b)+') ≈ '+fmt(Sx(b)),m.L+10,m.T+24,C.under,'left','top','600 13px '+MONO);}
+  var ym=Sx(3.2)*1.08;var m2=plot($('#c2b'),{xmin:0,xmax:3.2,ymin:0,ymax:ym,ratio:0.72,minH:240,maxH:440});
+  var cand=CANDS.filter(function(c){return c.id===L2.cand;})[0];
+  if(m2){C=m2.C;clip(m2);if(cand)curve(m2,cand.g,0,3.2,C.cand,2.2,[7,5]);vline(m2,b,C.muted);
+    L2.points.forEach(function(p){dotAt(m2,p.b,p.v,C.ink,5);});m2.ctx.restore();
+    if(!L2.points.length)text(m2,'b를 바꾸고 ‘기록하기’를 눌러 점을 찍으세요',(m2.L+m2.R)/2,(m2.T+m2.B)/2,C.muted,'center','middle','13px '+BODY);}
+  $('#pts2').innerHTML=L2.points.map(function(p){return '<span class="pt">b = '+trim(p.b)+' → '+fmt(p.v)+'</span>';}).join('');
+  var vd=$('#verdict2');
   if(!cand){vd.className='verdict';vd.textContent='';}
-  else if(st.points.length<2){vd.className='verdict';vd.textContent='점을 두 개 이상 찍어야 판단할 수 있어요.';}
-  else{const ok=st.points.every(p=>Math.abs(cand.g(p.b)-p.v)<=Math.max(0.002,0.002*p.v));
-    vd.className='verdict '+(ok?'ok':'no');vd.textContent=ok?'S(x) = '+cand.label+' 가 기록한 점을 모두 지나요.':'S(x) = '+cand.label+' 는 어긋나는 점이 있어요.';}
-}
-function drawAll(){drawMain();renderTable();drawS();}
+  else if(L2.points.length<2){vd.className='verdict';vd.textContent='점을 두 개 이상 찍어야 판단할 수 있어요.';}
+  else{var ok=L2.points.every(function(p){return Math.abs(cand.g(p.b)-p.v)<=Math.max(0.002,0.002*p.v);});
+    vd.className='verdict '+(ok?'ok':'no');vd.textContent=ok?'S(x) = '+cand.label+' 이(가) 기록한 점을 모두 지나요.':'S(x) = '+cand.label+' 은(는) 어긋나는 점이 있어요.';}}
+function drawLab3(){var f=f2(),b=L2.b,dx=Math.pow(10,-L3.v),xmax=b+1.15,C;
+  var m=plot($('#c3a'),{xmin:0,xmax:xmax,ymin:0,ymax:f(xmax)*1.05,ratio:0.72,minH:240,maxH:440});
+  if(m){C=m.C;clip(m);fillUnder(m,f,0,b,C.under,.18);fillUnder(m,f,b,Math.min(b+dx,xmax),C.inc,.6);
+    var c=m.ctx;c.save();c.setLineDash([4,3]);c.strokeStyle=C.inc;c.lineWidth=1.5;var pw=Math.max(1,m.X(Math.min(b+dx,xmax))-m.X(b));c.strokeRect(m.X(b),m.Y(f(b)),pw,m.Y(0)-m.Y(f(b)));c.restore();
+    curve(m,f,0,xmax,C.ink,2.4);vline(m,b,C.muted);c.restore();
+    text(m,F2[L2.fn].label,m.L+10,m.T+4,C.ink,'left','top','600 14px '+MONO);
+    text(m,'ΔS',m.X(b)+Math.max(pw,2)+6,m.Y(f(b))-4,C.inc,'left','bottom','600 13px '+BODY);}
+  var Sb=Sx(b),Sd=Sx(b+dx),q=(Sd-Sb)/dx;
+  var m2=plot($('#c3b'),{xmin:0,xmax:xmax,ymin:0,ymax:Sx(xmax)*1.08,ratio:0.72,minH:240,maxH:440});
+  if(m2){C=m2.C;clip(m2);
+    var N=120,pts=[],acc=0,prev=0,ff=f;for(var i=0;i<=N;i++){var x=xmax*i/N;if(i){acc+=simpson(ff,prev,x,8);}pts.push([x,acc]);prev=x;}
+    var cx=m2.ctx;cx.save();cx.strokeStyle=C.ink;cx.lineWidth=2.4;cx.beginPath();pts.forEach(function(p,i){if(i)cx.lineTo(m2.X(p[0]),m2.Y(p[1]));else cx.moveTo(m2.X(p[0]),m2.Y(p[1]));});cx.stroke();cx.restore();
+    var ext=0.7;seg(m2,b-ext,Sb-q*ext,b+dx+ext,Sd+q*ext,C.inc,2);
+    if(L3.tan){var k=f(b);seg(m2,b-ext,Sb-k*ext,b+ext,Sb+k*ext,C.muted,1.6,[6,4]);}
+    dotAt(m2,b,Sb,C.ink,5);dotAt(m2,b+dx,Sd,C.inc,5);m2.ctx.restore();
+    text(m2,'직선의 기울기 = ΔS ÷ Δx = '+fmt(q,3),m2.L+10,m2.T+4,C.inc,'left','top','600 13px '+BODY);
+    if(L3.tan)text(m2,'점선의 기울기 = f(b) = '+trim(f(b)),m2.L+10,m2.T+24,C.muted,'left','top','600 13px '+BODY);}
+  $('#dx3out').textContent=dx>=0.01?trim(dx):dx.toPrecision(2);
+  $('#r3S').textContent=fmt(Sd-Sb,5);$('#r3Q').textContent=fmt(q,5);$('#r3F').textContent=fmt(f(b),5);
+  $('#t3').innerHTML=[0.5,0.1,0.01,0.001].map(function(d){return '<tr><td>'+d+'</td><td>'+fmt((Sx(b+d)-Sb)/d,5)+'</td></tr>';}).join('')+'<tr><td>f(b)</td><td>'+fmt(f(b),5)+'</td></tr>';}
+$$('.fnSeg2').forEach(function(sg){sg.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;L2.fn=b.dataset.fn;pressIn('.fnSeg2','fn',L2.fn);resetPts();drawLab2();drawLab3();});});
+$$('.bIn2').forEach(function(inp){inp.addEventListener('input',function(e){L2.b=+e.target.value;$$('.bIn2').forEach(function(o){o.value=L2.b;});$$('.b2out').forEach(function(o){o.textContent=trim(L2.b);});drawLab2();drawLab3();});});
+$('#rec2').addEventListener('click',function(){L2.points=L2.points.filter(function(p){return p.b!==L2.b;});L2.points.push({b:L2.b,v:Sx(L2.b)});L2.points.sort(function(a,c){return a.b-c.b;});drawLab2();});
+$('#clr2').addEventListener('click',function(){L2.points=[];drawLab2();});
+$('#cand2').innerHTML=CANDS.map(function(c){return '<button type="button" class="chip" data-id="'+c.id+'" aria-pressed="false">'+c.label+'</button>';}).join('');
+$('#cand2').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;L2.cand=L2.cand===b.dataset.id?null:b.dataset.id;pressIn('#cand2','id',L2.cand||'');drawLab2();});
+$('#dx3').addEventListener('input',function(e){L3.v=+e.target.value;drawLab3();});
+$('#tan3').addEventListener('click',function(){L3.tan=!L3.tan;$('#tan3').setAttribute('aria-pressed',String(L3.tan));drawLab3();});
 
-function press(groupSel,attr,val){document.querySelectorAll(groupSel+' button').forEach(bt=>bt.setAttribute('aria-pressed',String(bt.dataset[attr]===val)));}
-function resetPoints(){st.points=[1,2].map(b=>({b,v:measured(b)}));}
-$('#fnSeg').addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;st.fn=bt.dataset.fn;press('#fnSeg','fn',st.fn);st.cand=null;press('#candSeg','id','');resetPoints();drawAll();});
-$('#bIn').addEventListener('input',e=>{st.b=+e.target.value;$('#bOut').textContent=trim(st.b);drawAll();});
-function setN(n){st.n=n;$('#nIn').value=Math.min(n,200);$('#nOut').textContent=n;drawMain();}
-$('#nIn').addEventListener('input',e=>setN(+e.target.value));
-$('#nChips').addEventListener('click',e=>{const bt=e.target.closest('button');if(bt)setN(+bt.dataset.n);});
-$('#modeSeg').addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;st.mode=bt.dataset.mode;press('#modeSeg','mode',st.mode);
-  if(st.mode!=='both'&&st.gather){st.gather=false;st.t=0;$('#gatherBtn').setAttribute('aria-pressed','false');}drawMain();});
-let raf=0;
-function animateTo(target){cancelAnimationFrame(raf);if(reduce){st.t=target;drawMain();return;}
-  const from=st.t,t0=performance.now(),dur=750;const step=now=>{const k=Math.min(1,(now-t0)/dur);st.t=from+(target-from)*k;drawMain();if(k<1)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);}
-$('#gatherBtn').addEventListener('click',()=>{st.gather=!st.gather;$('#gatherBtn').setAttribute('aria-pressed',String(st.gather));
-  if(st.gather){st.mode='both';press('#modeSeg','mode','both');if(st.inc){st.inc=false;$('#incBtn').setAttribute('aria-pressed','false');}}
-  animateTo(st.gather?1:0);});
-$('#incBtn').addEventListener('click',()=>{st.inc=!st.inc;$('#incBtn').setAttribute('aria-pressed',String(st.inc));
-  if(st.inc&&st.gather){st.gather=false;$('#gatherBtn').setAttribute('aria-pressed','false');cancelAnimationFrame(raf);st.t=0;}drawMain();});
-$('#recBtn').addEventListener('click',()=>{st.points=st.points.filter(p=>p.b!==st.b);st.points.push({b:st.b,v:measured(st.b)});st.points.sort((a,c)=>a.b-c.b);drawS();});
-$('#clrBtn').addEventListener('click',()=>{st.points=[];drawS();});
-$('#candSeg').innerHTML=CANDS.map(c=>'<button class="chip" data-id="'+c.id+'" aria-pressed="false">'+c.label+'</button>').join('');
-$('#candSeg').addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;st.cand=st.cand===bt.dataset.id?null:bt.dataset.id;press('#candSeg','id',st.cand||'');drawS();});
-$('#tanBtn').addEventListener('click',()=>{st.tangent=!st.tangent;$('#tanBtn').setAttribute('aria-pressed',String(st.tangent));drawS();});
+/* ---------- 그래프 고르기 ---------- */
+var MF=[function(x){return 2-x;},function(x){return 2*x-x*x;},function(x){return 2*x-x*x/2;},function(x){return x*x/2;}];
+function drawMini(id,g,color){var c=document.getElementById(id);if(!c)return;var m=plot(c,{xmin:0,xmax:2,ymin:0,ymax:2.2,ratio:0.7,minH:90,maxH:200,small:true});if(!m)return;clip(m);curve(m,g,0,2,color||m.C.ink,2.4);m.ctx.restore();}
+function drawMatch(){drawMini('mf',function(x){return 2-x;},colors().under);for(var i=0;i<4;i++)drawMini('m'+i,MF[i]);}
 
-resetPoints();drawAll();
-let rt=0;const ro=new ResizeObserver(()=>{clearTimeout(rt);rt=setTimeout(drawAll,60);});ro.observe(mainC.parentElement);ro.observe(sC.parentElement);
+/* ---------- 활동 4 ---------- */
+var L4={a:0,C:0};
+function drawLab4(){var C;var a=L4.a,Sa=function(x){return (x*x*x-a*a*a)/3;},S0=function(x){return x*x*x/3;};
+  var m=plot($('#c4a'),{xmin:-1.5,xmax:2.2,ymin:-4,ymax:3.8,ratio:0.66,minH:260,maxH:480});
+  if(m){C=m.C;clip(m);curve(m,S0,-1.5,2.2,C.muted,2,[6,4]);curve(m,Sa,-1.5,2.2,C.inc,2.6);
+    var k=2.25,d=0.35;seg(m,1.5-d,S0(1.5)-k*d,1.5+d,S0(1.5)+k*d,C.ink,1.6);seg(m,1.5-d,Sa(1.5)-k*d,1.5+d,Sa(1.5)+k*d,C.ink,1.6);
+    dotAt(m,a,0,C.inc,5);m.ctx.restore();
+    text(m,'x = a에서 Sₐ = 0',Math.min(m.X(a)+8,m.R-120),m.Y(0)+6,C.inc,'left','top','600 12.5px '+BODY);}
+  $('#a4out').textContent=trim(a);$('#r4D').textContent=fmt(a*a*a/3);$('#r4s0').textContent='2.25';$('#r4sa').textContent='2.25';
+  var Cc=L4.C,F=function(x){return x*x*x/3+Cc;},F0=function(x){return x*x*x/3;};
+  var m2=plot($('#c4b'),{xmin:0,xmax:2.6,ymin:-2.5,ymax:9,ratio:0.66,minH:260,maxH:480});
+  if(m2){C=m2.C;clip(m2);curve(m2,F0,0,2.6,C.muted,2,[6,4]);curve(m2,F,0,2.6,C.inc,2.6);
+    var bx=2.4;seg(m2,1,F(1),bx,F(1),C.muted,1,[3,3]);seg(m2,2,F(2),bx,F(2),C.muted,1,[3,3]);seg(m2,bx,F(1),bx,F(2),C.ink,3);
+    dotAt(m2,1,F(1),C.inc,5);dotAt(m2,2,F(2),C.inc,5);m2.ctx.restore();
+    text(m2,'F(2) − F(1)',m2.X(bx)-8,m2.Y((F(1)+F(2))/2),C.ink,'right','middle','600 12.5px '+BODY);}
+  $('#C4out').textContent=trim(Cc);$('#r4F1').textContent=fmt(F(1));$('#r4F2').textContent=fmt(F(2));$('#r4FD').textContent=fmt(F(2)-F(1));}
+$('#a4').addEventListener('input',function(e){L4.a=+e.target.value;drawLab4();});
+$('#C4').addEventListener('input',function(e){L4.C=+e.target.value;drawLab4();});
+
+/* ---------- 도전 ---------- */
+var b6=1.5;
+function drawLab6(){var f=function(x){return x*x-1;},C;
+  var m=plot($('#c6'),{xmin:0,xmax:2.6,ymin:-1.4,ymax:6,ratio:0.62,minH:240,maxH:460});
+  if(m){C=m.C;clip(m);fillUnder(m,function(x){return Math.max(f(x),0);},0,b6,C.under,.4);fillUnder(m,function(x){return Math.min(f(x),0);},0,b6,C.neg,.4);
+    curve(m,f,0,2.6,C.ink,2.4);vline(m,b6,C.muted);m.ctx.restore();}
+  var neg=-simpson(f,0,Math.min(b6,1)),pos=b6>1?simpson(f,1,b6):0;
+  $('#b6out').textContent=b6.toFixed(2);$('#r6P').textContent=fmt(pos);$('#r6N').textContent=fmt(neg);$('#r6I').textContent=fmt(pos-neg);$('#r6A').textContent=fmt(pos+neg);}
+$('#b6').addEventListener('input',function(e){b6=+e.target.value;drawLab6();});
+
+/* ---------- 진로 과제 제출 (Google Apps Script) ---------- */
+/* Apps Script 웹 앱을 배포한 뒤 받은 주소(…/exec)를 아래 따옴표 안에 붙여 넣으세요. */
+var SUBMIT_URL='';
+(function(){var form=$('#careerForm'),msg=$('#cf-msg'),btn=$('#cf-send');
+  var FIELDS=['sid','sname','field','title','xaxis','height','area','split','sum','reverse'];
+  var REQ=['sid','sname','title','xaxis','height','area','split','sum'];
+  var img=null;
+  if(!S.career)S.career={};
+  FIELDS.forEach(function(k){var el=$('#cf-'+k);if(S.career[k])el.value=S.career[k];
+    el.addEventListener('input',function(){S.career[k]=el.value;el.parentNode.classList.remove('bad');save();});});
+  if(S.careerSent)setMsg('이전에 '+S.careerSent+'에 제출했어요. 고쳐서 다시 제출하면 새 줄로 추가됩니다.','ok');
+  function setMsg(t,cls){msg.textContent=t;msg.className='qmsg'+(cls?' '+cls:'');}
+  $('#cf-img').addEventListener('change',function(e){var file=e.target.files&&e.target.files[0];img=null;if(!file)return;
+    if(!/^image\//.test(file.type)){$('#cf-imgmsg').textContent='사진 파일만 올릴 수 있어요.';return;}
+    var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){
+      var s=Math.min(1,1400/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);
+      var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(im,0,0,cv.width,cv.height);
+      img={name:file.name.replace(/\.[^.]+$/,'')+'.jpg',type:'image/jpeg',data:cv.toDataURL('image/jpeg',0.82).split(',')[1]};
+      $('#cf-imgmsg').textContent='사진 준비 완료 ('+cv.width+'×'+cv.height+', 약 '+Math.round(img.data.length*0.75/1024)+'KB)';};
+      im.onerror=function(){$('#cf-imgmsg').textContent='이 사진은 읽을 수 없어요. JPG나 PNG로 다시 올려 주세요.';};im.src=fr.result;};fr.readAsDataURL(file);});
+  function results(){var answered=GRADED.filter(function(id){return S.ans[id]&&S.ans[id].first!==undefined;});
+    var right=answered.filter(function(id){return S.ans[id].firstOk;}).length;
+    var flags=MIS.filter(function(m){return m.q.some(function(id){var r=S.ans[id];return r&&r.first!==undefined&&!r.firstOk;});}).map(function(m){return m.label;});
+    return{score:right+' / '+answered.length,flags:flags,explain:(S.text||'').trim(),pred0:S.pred0===null?'':String(S.pred0)};}
+  form.addEventListener('submit',function(e){e.preventDefault();
+    var miss=REQ.filter(function(k){var el=$('#cf-'+k),bad=!el.value.trim();el.parentNode.classList.toggle('bad',bad);return bad;});
+    if(miss.length){setMsg('* 표시한 칸을 모두 채워 주세요.','no');$('#cf-'+miss[0]).focus();return;}
+    if(!SUBMIT_URL){setMsg('아직 제출 주소가 설정되지 않았어요. 선생님께 알려 주세요.','no');return;}
+    var data={page:'integral-lesson-v1'};FIELDS.forEach(function(k){data[k]=$('#cf-'+k).value.trim();});
+    if($('#cf-results').checked)data.results=results();if(img)data.image=img;
+    btn.disabled=true;setMsg('보내는 중…','');
+    fetch(SUBMIT_URL,{method:'POST',body:JSON.stringify(data)})
+      .then(function(r){return r.json();})
+      .then(function(j){if(!j||!j.ok)throw new Error((j&&j.error)||'unknown');
+        var t=new Date();S.careerSent=t.getMonth()+1+'월 '+t.getDate()+'일 '+t.getHours()+':'+String(t.getMinutes()).padStart(2,'0');save();
+        setMsg('제출했어요 ('+S.careerSent+'). 고쳐서 다시 제출하면 새 줄로 추가됩니다.','ok');})
+      .catch(function(err){setMsg('제출하지 못했어요. 인터넷 연결을 확인하고 다시 눌러 주세요. 계속 안 되면 선생님께 알려 주세요. ('+(err&&err.message||'오류')+')','no');})
+      .then(function(){btn.disabled=false;});});})();
+
+/* ---------- 시작 ---------- */
+function drawAll(){drawLab1();renderT1();drawLab2();drawLab3();drawMatch();drawLab4();drawLab6();}
+Object.keys(Q).forEach(function(id){var k=Q[id].kind;if(k==='num')buildNum(id);else if(k==='cls')buildCls(id);else buildMCQ(id);});
+Object.keys(Q).forEach(function(id){if(Q[id].gate&&isDone(id))unlock(Q[id].gate);});
+paintPred0();resetPts();updateProgress();renderSummary();drawAll();
+var rt=0;var ro=new ResizeObserver(function(){clearTimeout(rt);rt=setTimeout(drawAll,80);});ro.observe(document.querySelector('.wrap'));
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawAll);
 new MutationObserver(drawAll).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(drawAll);
 })();
 </script>
-</body>
-</html>
+
+</body></html>
